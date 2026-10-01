@@ -22,11 +22,12 @@ test('template exposes exactly pins 1..19, each once', () => {
   assert.deepEqual(pins, Array.from({ length: 19 }, (_, i) => i + 1));
 });
 
-test('every pad group has a pad, a number label and an empty value slot', () => {
+test('every pad group has a pad, a number label, an empty value slot and an empty calibrated-value slot', () => {
   for (const g of padGroups()) {
     assert.match(g.body, /<rect class="pad"/, `pin ${g.pin}: missing .pad`);
     assert.match(g.body, new RegExp(`<text class="pad-label"[^>]*>${g.pin}<\\/text>`), `pin ${g.pin}: label mismatch`);
     assert.match(g.body, /<text class="pad-value"[^>]*><\/text>/, `pin ${g.pin}: missing empty .pad-value slot`);
+    assert.match(g.body, /<text class="pad-value-adj"[^>]*><\/text>/, `pin ${g.pin}: missing empty .pad-value-adj slot`);
   }
 });
 

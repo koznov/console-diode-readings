@@ -4,14 +4,15 @@
   connector removed: a single row, pin 19 at the LEFT and pin 1 at the RIGHT.
   Consumer: js/pinmap.mjs clones this SVG, then colors each .pad-group by its
   data-pin and the loaded board's signal class, and writes the measured value
-  into the empty .pad-value slot so every reading is visible at once.
+  into the empty .pad-value slot so every reading is visible at once; the
+  .pad-value-adj slot below it carries the meter-calibrated figure when set.
   Styling is driven by CSS variables (--sig-*) and classes in css/style.css.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 150" role="group" aria-label="HDMI connector footprint, 19 pads">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 162" role="group" aria-label="HDMI connector footprint, 19 pads">
   <!-- Deliberately no SVG title element: browsers render it as a native tooltip on top of ours. -->
 
   <!-- Board outline / connector keep-out -->
-  <rect class="body" x="8" y="8" width="724" height="134" rx="10" ry="10"/>
+  <rect class="body" x="8" y="8" width="724" height="146" rx="10" ry="10"/>
 
   <!-- Orientation hints: pin 19 on the left, pin 1 on the right -->
   <text class="marker-label" x="20" y="24">PIN 19</text>
@@ -22,114 +23,133 @@
     <rect class="pad" x="32" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="42.0" y="44">19</text>
     <text class="pad-value" x="42.0" y="106"></text>
-    <polygon class="pad-caret" points="37.0,118 47.0,118 42.0,112"/>
+    <text class="pad-value-adj" x="42.0" y="120"></text>
+    <polygon class="pad-caret" points="37.0,134 47.0,134 42.0,128"/>
   </g>
   <g class="pad-group" data-pin="18">
     <rect class="pad" x="68" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="78.0" y="44">18</text>
     <text class="pad-value" x="78.0" y="106"></text>
-    <polygon class="pad-caret" points="73.0,118 83.0,118 78.0,112"/>
+    <text class="pad-value-adj" x="78.0" y="120"></text>
+    <polygon class="pad-caret" points="73.0,134 83.0,134 78.0,128"/>
   </g>
   <g class="pad-group" data-pin="17">
     <rect class="pad" x="104" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="114.0" y="44">17</text>
     <text class="pad-value" x="114.0" y="106"></text>
-    <polygon class="pad-caret" points="109.0,118 119.0,118 114.0,112"/>
+    <text class="pad-value-adj" x="114.0" y="120"></text>
+    <polygon class="pad-caret" points="109.0,134 119.0,134 114.0,128"/>
   </g>
   <g class="pad-group" data-pin="16">
     <rect class="pad" x="140" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="150.0" y="44">16</text>
     <text class="pad-value" x="150.0" y="106"></text>
-    <polygon class="pad-caret" points="145.0,118 155.0,118 150.0,112"/>
+    <text class="pad-value-adj" x="150.0" y="120"></text>
+    <polygon class="pad-caret" points="145.0,134 155.0,134 150.0,128"/>
   </g>
   <g class="pad-group" data-pin="15">
     <rect class="pad" x="176" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="186.0" y="44">15</text>
     <text class="pad-value" x="186.0" y="106"></text>
-    <polygon class="pad-caret" points="181.0,118 191.0,118 186.0,112"/>
+    <text class="pad-value-adj" x="186.0" y="120"></text>
+    <polygon class="pad-caret" points="181.0,134 191.0,134 186.0,128"/>
   </g>
   <g class="pad-group" data-pin="14">
     <rect class="pad" x="212" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="222.0" y="44">14</text>
     <text class="pad-value" x="222.0" y="106"></text>
-    <polygon class="pad-caret" points="217.0,118 227.0,118 222.0,112"/>
+    <text class="pad-value-adj" x="222.0" y="120"></text>
+    <polygon class="pad-caret" points="217.0,134 227.0,134 222.0,128"/>
   </g>
   <g class="pad-group" data-pin="13">
     <rect class="pad" x="248" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="258.0" y="44">13</text>
     <text class="pad-value" x="258.0" y="106"></text>
-    <polygon class="pad-caret" points="253.0,118 263.0,118 258.0,112"/>
+    <text class="pad-value-adj" x="258.0" y="120"></text>
+    <polygon class="pad-caret" points="253.0,134 263.0,134 258.0,128"/>
   </g>
   <g class="pad-group" data-pin="12">
     <rect class="pad" x="284" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="294.0" y="44">12</text>
     <text class="pad-value" x="294.0" y="106"></text>
-    <polygon class="pad-caret" points="289.0,118 299.0,118 294.0,112"/>
+    <text class="pad-value-adj" x="294.0" y="120"></text>
+    <polygon class="pad-caret" points="289.0,134 299.0,134 294.0,128"/>
   </g>
   <g class="pad-group" data-pin="11">
     <rect class="pad" x="320" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="330.0" y="44">11</text>
     <text class="pad-value" x="330.0" y="106"></text>
-    <polygon class="pad-caret" points="325.0,118 335.0,118 330.0,112"/>
+    <text class="pad-value-adj" x="330.0" y="120"></text>
+    <polygon class="pad-caret" points="325.0,134 335.0,134 330.0,128"/>
   </g>
   <g class="pad-group" data-pin="10">
     <rect class="pad" x="356" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="366.0" y="44">10</text>
     <text class="pad-value" x="366.0" y="106"></text>
-    <polygon class="pad-caret" points="361.0,118 371.0,118 366.0,112"/>
+    <text class="pad-value-adj" x="366.0" y="120"></text>
+    <polygon class="pad-caret" points="361.0,134 371.0,134 366.0,128"/>
   </g>
   <g class="pad-group" data-pin="9">
     <rect class="pad" x="392" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="402.0" y="44">9</text>
     <text class="pad-value" x="402.0" y="106"></text>
-    <polygon class="pad-caret" points="397.0,118 407.0,118 402.0,112"/>
+    <text class="pad-value-adj" x="402.0" y="120"></text>
+    <polygon class="pad-caret" points="397.0,134 407.0,134 402.0,128"/>
   </g>
   <g class="pad-group" data-pin="8">
     <rect class="pad" x="428" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="438.0" y="44">8</text>
     <text class="pad-value" x="438.0" y="106"></text>
-    <polygon class="pad-caret" points="433.0,118 443.0,118 438.0,112"/>
+    <text class="pad-value-adj" x="438.0" y="120"></text>
+    <polygon class="pad-caret" points="433.0,134 443.0,134 438.0,128"/>
   </g>
   <g class="pad-group" data-pin="7">
     <rect class="pad" x="464" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="474.0" y="44">7</text>
     <text class="pad-value" x="474.0" y="106"></text>
-    <polygon class="pad-caret" points="469.0,118 479.0,118 474.0,112"/>
+    <text class="pad-value-adj" x="474.0" y="120"></text>
+    <polygon class="pad-caret" points="469.0,134 479.0,134 474.0,128"/>
   </g>
   <g class="pad-group" data-pin="6">
     <rect class="pad" x="500" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="510.0" y="44">6</text>
     <text class="pad-value" x="510.0" y="106"></text>
-    <polygon class="pad-caret" points="505.0,118 515.0,118 510.0,112"/>
+    <text class="pad-value-adj" x="510.0" y="120"></text>
+    <polygon class="pad-caret" points="505.0,134 515.0,134 510.0,128"/>
   </g>
   <g class="pad-group" data-pin="5">
     <rect class="pad" x="536" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="546.0" y="44">5</text>
     <text class="pad-value" x="546.0" y="106"></text>
-    <polygon class="pad-caret" points="541.0,118 551.0,118 546.0,112"/>
+    <text class="pad-value-adj" x="546.0" y="120"></text>
+    <polygon class="pad-caret" points="541.0,134 551.0,134 546.0,128"/>
   </g>
   <g class="pad-group" data-pin="4">
     <rect class="pad" x="572" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="582.0" y="44">4</text>
     <text class="pad-value" x="582.0" y="106"></text>
-    <polygon class="pad-caret" points="577.0,118 587.0,118 582.0,112"/>
+    <text class="pad-value-adj" x="582.0" y="120"></text>
+    <polygon class="pad-caret" points="577.0,134 587.0,134 582.0,128"/>
   </g>
   <g class="pad-group" data-pin="3">
     <rect class="pad" x="608" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="618.0" y="44">3</text>
     <text class="pad-value" x="618.0" y="106"></text>
-    <polygon class="pad-caret" points="613.0,118 623.0,118 618.0,112"/>
+    <text class="pad-value-adj" x="618.0" y="120"></text>
+    <polygon class="pad-caret" points="613.0,134 623.0,134 618.0,128"/>
   </g>
   <g class="pad-group" data-pin="2">
     <rect class="pad" x="644" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="654.0" y="44">2</text>
     <text class="pad-value" x="654.0" y="106"></text>
-    <polygon class="pad-caret" points="649.0,118 659.0,118 654.0,112"/>
+    <text class="pad-value-adj" x="654.0" y="120"></text>
+    <polygon class="pad-caret" points="649.0,134 659.0,134 654.0,128"/>
   </g>
   <g class="pad-group" data-pin="1">
     <rect class="pad" x="680" y="52" width="20" height="36" rx="3"/>
     <text class="pad-label" x="690.0" y="44">1</text>
     <text class="pad-value" x="690.0" y="106"></text>
-    <polygon class="pad-caret" points="685.0,118 695.0,118 690.0,112"/>
+    <text class="pad-value-adj" x="690.0" y="120"></text>
+    <polygon class="pad-caret" points="685.0,134 695.0,134 690.0,128"/>
   </g>
 </svg>
