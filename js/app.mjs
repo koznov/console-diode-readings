@@ -3,7 +3,7 @@
 import { loadCatalog, loadBoard } from './loader.mjs';
 import { Store } from './store.mjs';
 import { createPinmap } from './pinmap.mjs';
-import { SIGNAL_CLASSES, LEGEND_GROUPS, pinInfo } from './signals.mjs';
+import { SIGNAL_CLASSES, LEGEND_GROUPS, pinInfo, pinsForClass } from './signals.mjs';
 import { formatValue } from './values.mjs';
 import { el, clear } from './ui.mjs';
 
@@ -33,12 +33,14 @@ function csvEscape(v) {
 function exportCsv(board, connector) {
   const scope = `${board.id}:${connector.id}`;
   const marked = new Set(store.markedPins(scope));
-  const rows = [['pin', 'signal', 'value', 'marked']];
+  const rows = [['pin', 'name', 'signal', 'class', 'value', 'marked']];
   for (const p of connector.measurement.pins) {
-    const disp = SIGNAL_CLASSES[p.signalClass]?.displayName ?? p.signalClass;
+    const info = pinInfo(p.num, p.signalClass);
     rows.push([
       p.num,
-      disp,
+      info.short,
+      info.name,
+      info.classDisplayName,
       p.raw,
       marked.has(p.num) ? 'yes' : 'no',
     ]);
@@ -75,46 +77,87 @@ function renderNav(cat, onSelect) {
   }
 }
 
+// Legend doubles as the signal filter: hover a chip → its pins light up,
+// click → pin that signal (and show its description below the connector).
+// Chips are ordered by LEGEND_GROUPS but the group captions are not shown.
 function renderLegend(host) {
   clear(host);
   host.className = 'legend';
+  host.appendChild(el('div', { class: 'legend-head' }, [
+    el('span', { class: 'legend-title' }, 'Signals'),
+    el('span', { class: 'legend-hint' }, 'hover a signal to highlight its pins · click to pin it'),
+  ]));
+  const chips = el('div', { class: 'legend-chips', role: 'group', 'aria-label': 'Signal classes' });
   for (const grp of LEGEND_GROUPS) {
-    const g = el('div', { class: 'legend-group' }, [
-      el('span', { class: 'legend-group-title' }, grp.group),
-    ]);
     for (const cls of grp.classes) {
       const meta = SIGNAL_CLASSES[cls];
-      const sw = el('span', { class: `swatch ${cls === 'utility' ? '' : ''}` });
+      const sw = el('span', { class: 'swatch' });
       sw.style.background = `var(${meta.cssVar})`;
-      g.appendChild(el('span', { class: 'swatch-item' }, [sw, el('span', {}, meta.displayName)]));
+      const pins = pinsForClass(cls);
+      const chip = el('button', {
+        class: 'legend-chip',
+        type: 'button',
+        'aria-pressed': 'false',
+        title: meta.description,
+        onmouseenter: () => setLegendHover(cls),
+        onmouseleave: () => setLegendHover(null),
+        onfocus: () => setLegendHover(cls),
+        onblur: () => setLegendHover(null),
+        onclick: () => toggleSignalFilter(cls),
+      }, [sw, el('span', {}, meta.displayName), el('span', { class: 'chip-pins' }, pins.join(','))]);
+      chip.dataset.class = cls;
+      chips.appendChild(chip);
     }
-    host.appendChild(g);
   }
+  host.appendChild(chips);
+  syncLegend();
 }
 
-function renderControls(host, { onFilter, onToggleLabels, onToggleTheme, onViewMode }) {
-  clear(host);
+// Transient highlight from legend hover (or pad hover mirrored back).
+function setLegendHover(cls) {
+  currentPinmap?.setHighlight(cls);
+  document.querySelectorAll('.legend-chip').forEach(c => c.classList.toggle('hot', c.dataset.class === cls));
+  const legend = document.querySelector('.legend');
+  if (legend) legend.classList.toggle('focused', cls != null || (currentPinmap?.filter ?? 'all') !== 'all');
+}
 
-  const filterSel = el('select', { id: 'filter-sel', onchange: (e) => onFilter(e.target.value) }, [
-    el('option', { value: 'all' }, 'All pads'),
-    el('optgroup', { label: 'By signal group' }),
-  ]);
-  // rebuild optgroups properly (optgroup can't take option kids easily here)
-  clear(filterSel);
-  filterSel.appendChild(el('option', { value: 'all' }, 'All pads'));
-  for (const grp of LEGEND_GROUPS) {
-    const og = el('optgroup', { label: grp.group });
-    for (const cls of grp.classes) {
-      og.appendChild(el('option', { value: cls }, SIGNAL_CLASSES[cls].displayName));
-    }
-    filterSel.appendChild(og);
+// Click on a chip pins its class as the filter; clicking the same chip unpins.
+function toggleSignalFilter(cls) {
+  if (!currentPinmap) return;
+  const next = currentPinmap.filter === cls ? 'all' : cls;
+  currentPinmap.setFilter(next);
+  if (next !== 'all') {
+    currentPinmap.select(null); // signal view replaces pin view
+    scrollPadsIntoView(pinsForClass(next));
   }
-  filterSel.value = 'all';
+  syncLegend();
+  renderPinDetail(currentPinmap.selectedPin);
+}
 
-  host.appendChild(el('div', { class: 'control-group' }, [
-    el('label', { for: 'filter-sel' }, 'Filter:'),
-    filterSel,
-  ]));
+// On narrow screens the 19-pad row scrolls inside .svg-wrap; bring the
+// first highlighted pad into view so a pinned signal is never off-screen.
+function scrollPadsIntoView(pins) {
+  const wrap = document.querySelector('.svg-wrap');
+  const first = pins.length ? document.querySelector(`.pad-group[data-pin="${pins[0]}"]`) : null;
+  if (!wrap || !first || wrap.scrollWidth <= wrap.clientWidth) return;
+  const w = wrap.getBoundingClientRect();
+  const r = first.getBoundingClientRect();
+  wrap.scrollTo({ left: wrap.scrollLeft + (r.left - w.left) - (w.width - r.width) / 2, behavior: 'smooth' });
+}
+
+function syncLegend() {
+  const active = currentPinmap?.filter ?? 'all';
+  document.querySelectorAll('.legend-chip').forEach(c => {
+    const on = c.dataset.class === active;
+    c.classList.toggle('active', on);
+    c.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  const legend = document.querySelector('.legend');
+  if (legend) legend.classList.toggle('focused', active !== 'all');
+}
+
+function renderControls(host, { onToggleLabels, onToggleTheme, onViewMode }) {
+  clear(host);
 
   const labelsCb = el('input', { type: 'checkbox', id: 'lbl-toggle', onchange: (e) => onToggleLabels(e.target.checked) });
   labelsCb.checked = labelsVisible;
@@ -158,8 +201,10 @@ function renderPinDetail(pin) {
   clear(host);
 
   if (pin == null) {
+    const cls = currentPinmap?.filter ?? 'all';
+    if (cls !== 'all') { renderSignalDetail(host, cls); return; }
     host.className = 'pin-detail empty';
-    host.appendChild(el('div', {}, 'Click or tap a pad to see what that pin does. Hover shows it too.'));
+    host.appendChild(el('div', {}, 'Click or tap a pad to see what that pin does. Hover a signal below to find its pins.'));
     return;
   }
 
@@ -173,8 +218,9 @@ function renderPinDetail(pin) {
 
   host.appendChild(el('div', { class: 'pd-head' }, [
     el('span', { class: 'pd-pin' }, `Pin ${pin}`),
-    el('span', { class: 'pd-name' }, info.name),
-    // class chip always carries the swatch; the text only when it differs from the name
+    el('span', { class: 'pd-name pd-short' }, info.short),
+    // long name + class chip; each shown only when it adds to what's already there
+    info.name !== info.short ? el('span', { class: 'pd-class' }, info.name) : null,
     el('span', { class: 'pd-class' }, [sw, info.classDisplayName !== info.name ? info.classDisplayName : null]),
   ]));
 
@@ -198,6 +244,32 @@ function renderPinDetail(pin) {
     onclick: () => currentPinmap?.select(null),
   }, 'Deselect'));
   host.appendChild(actions);
+}
+
+// Signal view: shown when a legend chip is pinned and no pin is selected.
+function renderSignalDetail(host, cls) {
+  const meta = SIGNAL_CLASSES[cls];
+  host.className = 'pin-detail signal';
+  const sw = el('span', { class: 'swatch' });
+  sw.style.background = `var(${meta.cssVar})`;
+  host.appendChild(el('div', { class: 'pd-head' }, [
+    el('span', { class: 'pd-pin' }, [sw, ` ${meta.displayName}`]),
+  ]));
+  host.appendChild(el('p', { class: 'pd-desc' }, meta.description));
+
+  const list = el('div', { class: 'pd-pinlist' });
+  for (const p of currentConnector.measurement.pins.filter(p => p.signalClass === cls)) {
+    const info = pinInfo(p.num, p.signalClass);
+    list.appendChild(el('button', {
+      type: 'button',
+      onclick: () => currentPinmap?.select(p.num),
+    }, [`${p.num} ${info.short}`, el('span', { class: 'v' }, formatValue(p.parsed))]));
+  }
+  host.appendChild(list);
+
+  host.appendChild(el('div', { class: 'pd-actions' }, [
+    el('button', { class: 'btn', onclick: () => toggleSignalFilter(cls) }, 'Show all pins'),
+  ]));
 }
 
 function renderInfoPanel(canvas, board) {
@@ -271,7 +343,6 @@ async function selectBoard(cons, entry, btn) {
 
   // Controls + util
   renderControls(document.getElementById('controls'), {
-    onFilter: (c) => currentPinmap?.setFilter(c),
     onToggleLabels: (on) => { labelsVisible = on; store.set('labels', String(on)); currentPinmap?.setLabels(on); },
     onToggleTheme: () => {
       const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -315,16 +386,25 @@ async function bootPinmap(board, connector) {
       if (span) span.textContent = count === 0 ? 'No pins marked' : `${count} pin${count === 1 ? '' : 's'} marked`;
     },
     onSelect: (pin) => renderPinDetail(pin),
+    onHover: (pin) => {
+      // mirror pad hover into the legend chip of that pin's class
+      const ep = pin != null ? connector.measurement.pins.find(p => p.num === pin) : null;
+      const cls = ep ? ep.signalClass : null;
+      document.querySelectorAll('.legend-chip').forEach(c => c.classList.toggle('hot', c.dataset.class === cls));
+    },
   });
   currentPinmap.setLabels(labelsVisible);
   currentPinmap.refresh();
   updateMarkerCounter(board, connector);
+  syncLegend();
   renderPinDetail(null);
 }
 
-// Esc anywhere clears the selection (pads handle their own Esc while focused).
+// Esc: first clears the selected pin, then the pinned signal filter.
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && currentPinmap?.selectedPin != null) currentPinmap.select(null);
+  if (e.key !== 'Escape' || !currentPinmap) return;
+  if (currentPinmap.selectedPin != null) { currentPinmap.select(null); return; }
+  if (currentPinmap.filter !== 'all') toggleSignalFilter(currentPinmap.filter);
 });
 
 // ---- Boot --------------------------------------------------------------

@@ -254,8 +254,12 @@ button.btn:hover { border-color: var(--accent); }
   stroke: var(--accent-mark);
   stroke-width: 3;
 }
-/* dimmed by filter */
+/* dimmed by filter / legend hover */
+.pad-group { transition: opacity .12s ease; }
 .pad-group.dimmed { opacity: 0.22; }
+/* highlighted by legend hover / pinned signal */
+.pad-group.highlight .pad { stroke: var(--accent); stroke-width: 2.5; }
+.pad-group.highlight .pad-label { fill: var(--accent); }
 /* OL: dashed outline, hollow-looking. fill stays painted (transparent) so the
    pad's whole area still takes hover/click — `fill: none` would make the
    interior a dead zone. */
@@ -347,28 +351,65 @@ button.btn:hover { border-color: var(--accent); }
 button.btn.danger { border-color: var(--accent-mark); color: var(--accent-mark); }
 button.btn.danger:hover { background: var(--accent-mark); color: #fff; }
 
-/* ---- Legend -------------------------------------------------------------- */
+/* ---- Legend (interactive: hover highlights, click pins a signal) --------- */
 .legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
   margin-top: 14px;
   padding: 10px 12px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
-.legend-group { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
-.legend-group-title {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  margin-right: 4px;
+.legend-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
 }
-.swatch-item { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; }
-.swatch { width: 13px; height: 13px; border-radius: 3px; border: 1px solid var(--pad-stroke); display: inline-block; }
+.legend-title { font-weight: 600; font-size: 0.9rem; }
+.legend-hint { font-size: 0.78rem; color: var(--text-muted); }
+.legend-chips { display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 3px 10px 3px 6px;
+  cursor: pointer;
+  transition: background .1s ease, border-color .1s ease, opacity .12s ease;
+}
+.legend-chip:hover, .legend-chip:focus-visible { background: var(--surface-2); border-color: var(--border); outline: none; }
+.legend-chip.hot { background: var(--surface-2); border-color: var(--pad-stroke); }
+.legend-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.legend-chip.active .swatch { border-color: #fff; }
+.legend.focused .legend-chip:not(.active):not(.hot) { opacity: 0.5; }
+.legend-chip .chip-pins { font-size: 0.72rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.legend-chip.active .chip-pins { color: rgba(255,255,255,0.85); }
+.swatch { width: 13px; height: 13px; border-radius: 3px; border: 1px solid var(--pad-stroke); display: inline-block; flex: none; }
 .swatch.ol { background: transparent !important; border-style: dashed; }
+
+/* signal detail (legend chip clicked) */
+.pin-detail.signal { border-left-color: var(--pad-stroke); }
+.pin-detail .pd-pinlist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.pin-detail .pd-pinlist button {
+  font: inherit;
+  font-size: 0.82rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+.pin-detail .pd-pinlist button:hover { border-color: var(--accent); }
+.pin-detail .pd-pinlist button .v { color: var(--text-muted); margin-left: 6px; }
+.pin-detail .pd-short { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
 /* ---- Info panels --------------------------------------------------------- */
 .notes-panel {
@@ -413,6 +454,7 @@ button.btn.danger:hover { background: var(--accent-mark); color: #fff; }
   }
   .controls-bar { padding: 10px; gap: 8px; }
   .svg-hint { display: block; }
+  .legend-hint { display: none; }
   .pin-detail { grid-template-columns: 1fr; }
   .pin-detail .pd-value { grid-column: 1; grid-row: auto; justify-self: start; }
 }
@@ -424,5 +466,6 @@ button.btn.danger:hover { background: var(--accent-mark); color: #fff; }
   .svg-wrap { border: none; }
   .pad-group.marked .pad { stroke-width: 4; }
   .svg-wrap svg { min-width: 0; max-width: 100%; }
-  .svg-hint, .pin-detail .pd-actions { display: none; }
+  .svg-hint, .pin-detail .pd-actions, .legend-hint { display: none; }
+  .legend-chip { border-color: var(--border); }
 }

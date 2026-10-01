@@ -6,6 +6,9 @@
 // Click / Enter / Space = SELECT the pin (the host renders a detail panel via
 // onSelect). Marking a pin as damaged is a separate, explicit action
 // (toggleMark) so an accidental tap never flips a mark.
+// setFilter(cls) pins a class filter; setHighlight(cls) is its transient
+// hover twin (legend hover). onHover(pin|null) lets the host mirror pad
+// hover back into the legend.
 
 import { pinInfo } from './signals.mjs';
 import { formatValue, emphasisKind } from './values.mjs';
@@ -37,10 +40,12 @@ function escapeHtml(s) {
  * @param {import('./store.mjs').Store} opts.store
  * @param {(scope:string,count:number)=>void} [opts.onChange] called after a mark toggles
  * @param {(pin:number|null)=>void}          [opts.onSelect] called when the selected pin changes
+ * @param {(pin:number|null)=>void}          [opts.onHover]  called on pad mouseenter / mouseleave
  */
-export async function createPinmap({ container, connector, board, store, onChange, onSelect }) {
+export async function createPinmap({ container, connector, board, store, onChange, onSelect, onHover }) {
   const scope = `${board.id}:${connector.id}`;
-  let activeFilter = 'all';
+  let activeFilter = 'all';   // pinned by click (legend chip)
+  let highlight = null;       // transient, legend hover; wins over activeFilter while set
   let selectedPin = null;
   let tipEl = null;
 
@@ -54,12 +59,10 @@ export async function createPinmap({ container, connector, board, store, onChang
 
   // ---- Tooltip (hover / focus only) --------------------------------------
   function tooltipHTML(info, parsed) {
-    // Class line only when it adds information (pin 18 is just "+5V Power").
-    const cls = info.classDisplayName !== info.name
-      ? `<span class="tt-class">${escapeHtml(info.classDisplayName)}</span> &middot; `
-      : '';
-    return `<b>Pin ${info.pin}</b> &middot; ${escapeHtml(info.name)}`
-      + `<br>${cls}<span class="tt-val">${escapeHtml(formatValue(parsed))}</span>`;
+    // "Pin 15 · SCL · SCL (DDC)" — long name only when it adds to the short one.
+    const long = info.name !== info.short ? ` &middot; <span class="tt-class">${escapeHtml(info.name)}</span>` : '';
+    return `<b>Pin ${info.pin}</b> &middot; <b>${escapeHtml(info.short)}</b>${long}`
+      + `<br><span class="tt-val">${escapeHtml(formatValue(parsed))}</span>`;
   }
   function showTip(html, clientX, clientY) {
     hideTip();
@@ -116,12 +119,12 @@ export async function createPinmap({ container, connector, board, store, onChang
 
     g.tabIndex = 0;
     g.setAttribute('role', 'button');
-    g.setAttribute('aria-label', `Pin ${pin}, ${info.name}, ${formatValue(ep.parsed)}`);
+    g.setAttribute('aria-label', `Pin ${pin}, ${info.short}, ${info.name}, ${formatValue(ep.parsed)}`);
 
     const tip = tooltipHTML(info, ep.parsed);
-    g.addEventListener('mouseenter', (e) => showTip(tip, e.clientX, e.clientY));
+    g.addEventListener('mouseenter', (e) => { showTip(tip, e.clientX, e.clientY); onHover?.(pin); });
     g.addEventListener('mousemove', (e) => placeTip(e.clientX, e.clientY));
-    g.addEventListener('mouseleave', hideTip);
+    g.addEventListener('mouseleave', () => { hideTip(); onHover?.(null); });
     g.addEventListener('focus', () => {
       const r = g.getBoundingClientRect();
       showTip(tip, r.left, r.bottom);
@@ -142,13 +145,16 @@ export async function createPinmap({ container, connector, board, store, onChang
 
   function refresh() {
     const marked = new Set(store.markedPins(scope));
+    const focusCls = highlight ?? (activeFilter !== 'all' ? activeFilter : null);
     for (const g of groups) {
       const pin = Number(g.dataset.pin);
       g.classList.toggle('marked', marked.has(pin));
       g.classList.toggle('selected', pin === selectedPin);
       g.setAttribute('aria-pressed', pin === selectedPin ? 'true' : 'false');
       const cls = g.dataset.class;
-      g.classList.toggle('dimmed', activeFilter !== 'all' && cls !== activeFilter && pinsById.has(pin));
+      const inFocus = focusCls != null && cls === focusCls;
+      g.classList.toggle('highlight', inFocus && pinsById.has(pin));
+      g.classList.toggle('dimmed', focusCls != null && !inFocus && pinsById.has(pin));
     }
   }
 
@@ -157,8 +163,10 @@ export async function createPinmap({ container, connector, board, store, onChang
     select,
     toggleMark,
     get selectedPin() { return selectedPin; },
+    get filter() { return activeFilter; },
     isMarked(pin) { return store.isMarked(scope, pin); },
-    setFilter(c) { activeFilter = c; refresh(); },
+    setFilter(c) { activeFilter = c ?? 'all'; refresh(); },
+    setHighlight(c) { highlight = c ?? null; refresh(); },
     setLabels(on) { container.classList.toggle('hide-labels', !on); },
     focusPin(pin) { groupByPin.get(pin)?.focus(); },
     destroy() { hideTip(); clear(container); },
