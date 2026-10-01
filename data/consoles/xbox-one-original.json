@@ -1,0 +1,103 @@
+{
+  "id": "xbone-orig",
+  "consoleId": "xbox-one",
+  "revision": "Original",
+  "confirmedOn": 1,
+  "notes": [],
+  "connectors": [
+    {
+      "id": "hdmi",
+      "type": "HDMI",
+      "label": "HDMI port",
+      "svgTemplate": "assets/connectors/hdmi.svg",
+      "pinCount": 19,
+      "measurement": {
+        "mode": "diode",
+        "probes": {
+          "red": "GND",
+          "black": "signal pin"
+        },
+        "unit": "V (drop)",
+        "pins": [
+          {
+            "num": 1,
+            "value": "0.77"
+          },
+          {
+            "num": 2,
+            "value": "0"
+          },
+          {
+            "num": 3,
+            "value": "0.77"
+          },
+          {
+            "num": 4,
+            "value": "0.77"
+          },
+          {
+            "num": 5,
+            "value": "0"
+          },
+          {
+            "num": 6,
+            "value": "0.77"
+          },
+          {
+            "num": 7,
+            "value": "0.77"
+          },
+          {
+            "num": 8,
+            "value": "0"
+          },
+          {
+            "num": 9,
+            "value": "0.77"
+          },
+          {
+            "num": 10,
+            "value": "0.77"
+          },
+          {
+            "num": 11,
+            "value": "0"
+          },
+          {
+            "num": 12,
+            "value": "0.77"
+          },
+          {
+            "num": 13,
+            "value": "1.0"
+          },
+          {
+            "num": 14,
+            "value": "OL"
+          },
+          {
+            "num": 15,
+            "value": "0.71"
+          },
+          {
+            "num": 16,
+            "value": "0.71"
+          },
+          {
+            "num": 17,
+            "value": "0"
+          },
+          {
+            "num": 18,
+            "value": "0.54"
+          },
+          {
+            "num": 19,
+            "value": "OL"
+          }
+        ]
+      }
+    }
+  ],
+  "photos": []
+}

@@ -1,0 +1,42 @@
+{
+  "consoles": [
+    { "id": "ps5", "brand": "Sony", "family": "PlayStation 5", "name": "PS5 Phat",
+      "boards": [{ "id": "cfi-1216a", "revision": "CFI-1216A", "file": "data/consoles/ps5-phat-cfi-1216a.json" }] },
+
+    { "id": "ps4-phat", "brand": "Sony", "family": "PlayStation 4", "name": "PS4 Phat",
+      "boards": [{ "id": "1004", "revision": "1004", "file": "data/consoles/ps4-phat-1004.json" }] },
+
+    { "id": "ps4-slim", "brand": "Sony", "family": "PlayStation 4", "name": "PS4 Slim",
+      "boards": [{ "id": "2016a", "revision": "2016A", "file": "data/consoles/ps4-slim-2016a.json" }] },
+
+    { "id": "ps3-phat", "brand": "Sony", "family": "PlayStation 3", "name": "PS3 Phat",
+      "boards": [
+        { "id": "cechk04", "revision": "CECHK04", "file": "data/consoles/ps3-phat-cechk04.json" },
+        { "id": "cechl04", "revision": "CECHL04", "file": "data/consoles/ps3-phat-cechl04.json" }
+      ] },
+
+    { "id": "ps3-slim", "brand": "Sony", "family": "PlayStation 3", "name": "PS3 Slim",
+      "boards": [{ "id": "ps3-slim-unconf", "revision": "Unconfirmed", "file": "data/consoles/ps3-slim.json" }] },
+
+    { "id": "ps3-superslim", "brand": "Sony", "family": "PlayStation 3", "name": "PS3 Super Slim",
+      "boards": [{ "id": "cech-4304", "revision": "CECH-4304", "file": "data/consoles/ps3-superslim-cech-4304.json" }] },
+
+    { "id": "xbox-one", "brand": "Microsoft", "family": "Xbox One", "name": "Xbox One Original",
+      "boards": [{ "id": "xbone-orig", "revision": "Original", "file": "data/consoles/xbox-one-original.json" }] },
+
+    { "id": "xbox-one-s", "brand": "Microsoft", "family": "Xbox One", "name": "Xbox One S",
+      "boards": [{ "id": "xbone-s", "revision": "S", "file": "data/consoles/xbox-one-s.json" }] },
+
+    { "id": "xbox-one-x", "brand": "Microsoft", "family": "Xbox One", "name": "Xbox One X",
+      "boards": [{ "id": "xbone-x", "revision": "X", "file": "data/consoles/xbox-one-x.json" }] },
+
+    { "id": "xbox-360-phat", "brand": "Microsoft", "family": "Xbox 360", "name": "Xbox 360 Phat",
+      "boards": [{ "id": "zephyr", "revision": "Zephyr", "file": "data/consoles/xbox-360-phat-zephyr.json" }] },
+
+    { "id": "xbox-360s", "brand": "Microsoft", "family": "Xbox 360", "name": "Xbox 360s",
+      "boards": [{ "id": "corona", "revision": "Corona", "file": "data/consoles/xbox-360s-corona.json" }] },
+
+    { "id": "wii-u", "brand": "Nintendo", "family": "Wii U", "name": "Wii U",
+      "boards": [{ "id": "wup101", "revision": "WUP101", "file": "data/consoles/wii-u-wup101.json" }] }
+  ]
+}

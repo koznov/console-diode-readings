@@ -1,0 +1,105 @@
+{
+  "id": "2016a",
+  "consoleId": "ps4-slim",
+  "revision": "2016A",
+  "confirmedOn": 3,
+  "notes": [
+    "Checked 3 2016As. On 2 of them pin 18 read OL; on the third 2016A pin 18 read 0.66."
+  ],
+  "connectors": [
+    {
+      "id": "hdmi",
+      "type": "HDMI",
+      "label": "HDMI port",
+      "svgTemplate": "assets/connectors/hdmi.svg",
+      "pinCount": 19,
+      "measurement": {
+        "mode": "diode",
+        "probes": {
+          "red": "GND",
+          "black": "signal pin"
+        },
+        "unit": "V (drop)",
+        "pins": [
+          {
+            "num": 1,
+            "value": "0.56"
+          },
+          {
+            "num": 2,
+            "value": "0"
+          },
+          {
+            "num": 3,
+            "value": "0.56"
+          },
+          {
+            "num": 4,
+            "value": "0.56"
+          },
+          {
+            "num": 5,
+            "value": "0"
+          },
+          {
+            "num": 6,
+            "value": "0.56"
+          },
+          {
+            "num": 7,
+            "value": "0.56"
+          },
+          {
+            "num": 8,
+            "value": "0"
+          },
+          {
+            "num": 9,
+            "value": "0.56"
+          },
+          {
+            "num": 10,
+            "value": "0.58"
+          },
+          {
+            "num": 11,
+            "value": "0"
+          },
+          {
+            "num": 12,
+            "value": "0.58"
+          },
+          {
+            "num": 13,
+            "value": "0.54"
+          },
+          {
+            "num": 14,
+            "value": "OL"
+          },
+          {
+            "num": 15,
+            "value": "0.70"
+          },
+          {
+            "num": 16,
+            "value": "0.70"
+          },
+          {
+            "num": 17,
+            "value": "0"
+          },
+          {
+            "num": 18,
+            "value": "OL"
+          },
+          {
+            "num": 19,
+            "value": "0.73"
+          }
+        ]
+      }
+    }
+  ],
+  "photos": []
+}

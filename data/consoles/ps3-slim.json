@@ -1,0 +1,105 @@
+{
+  "id": "ps3-slim-unconf",
+  "consoleId": "ps3-slim",
+  "revision": "Unconfirmed",
+  "confirmedOn": 1,
+  "notes": [
+    "Revision not yet confirmed by the original measurer."
+  ],
+  "connectors": [
+    {
+      "id": "hdmi",
+      "type": "HDMI",
+      "label": "HDMI port",
+      "svgTemplate": "assets/connectors/hdmi.svg",
+      "pinCount": 19,
+      "measurement": {
+        "mode": "diode",
+        "probes": {
+          "red": "GND",
+          "black": "signal pin"
+        },
+        "unit": "V (drop)",
+        "pins": [
+          {
+            "num": 1,
+            "value": "0.58"
+          },
+          {
+            "num": 2,
+            "value": "0"
+          },
+          {
+            "num": 3,
+            "value": "0.56"
+          },
+          {
+            "num": 4,
+            "value": "0.58"
+          },
+          {
+            "num": 5,
+            "value": "0"
+          },
+          {
+            "num": 6,
+            "value": "0.56"
+          },
+          {
+            "num": 7,
+            "value": "0.56"
+          },
+          {
+            "num": 8,
+            "value": "0"
+          },
+          {
+            "num": 9,
+            "value": "0.56"
+          },
+          {
+            "num": 10,
+            "value": "0.57"
+          },
+          {
+            "num": 11,
+            "value": "0"
+          },
+          {
+            "num": 12,
+            "value": "0.56"
+          },
+          {
+            "num": 13,
+            "value": "0.56"
+          },
+          {
+            "num": 14,
+            "value": "OL"
+          },
+          {
+            "num": 15,
+            "value": "0.72"
+          },
+          {
+            "num": 16,
+            "value": "0.72"
+          },
+          {
+            "num": 17,
+            "value": "0"
+          },
+          {
+            "num": 18,
+            "value": "0.62"
+          },
+          {
+            "num": 19,
+            "value": "0.72"
+          }
+        ]
+      }
+    }
+  ],
+  "photos": []
+}
