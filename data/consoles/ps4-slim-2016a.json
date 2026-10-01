@@ -4,7 +4,7 @@
   "revision": "2016A",
   "confirmedOn": 3,
   "notes": [
-    "Checked 3 2016As. On 2 of them pin 18 read OL; on the third 2016A pin 18 read 0.66."
+    "Checked 3 2016As. Pin 18 (+5V) read OL on 2 of them and 0.66 on the third — see the pin 18 note."
   ],
   "connectors": [
     {
@@ -91,7 +91,8 @@
           },
           {
             "num": 18,
-            "value": "OL"
+            "value": "0.66",
+            "note": "Varies between boards: source measured OL on 2 of 3 units and 0.66 on the third. 0.66 is in line with every other console, so treat OL here as a likely blown +5V fuse / switch rather than a normal reading."
           },
           {
             "num": 19,
