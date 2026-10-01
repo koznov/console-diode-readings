@@ -34,6 +34,8 @@ per-pin values. A maintainer will convert it to a data file.
 1. Add a JSON file under `data/consoles/` following the shape of an existing
    board file (copy one as a template). Each pin is `{"num": N, "value": "..."}`
    in order 1–19. Keep values as **strings** (so `OL` and `0` are preserved).
+   An optional `"note": "..."` on a pin is shown in the viewer when that pin
+   is selected — use it for per-pin caveats (e.g. *"varies 0.49–0.53"*).
 2. Register it in `data/catalog.json` under the right console (add the console
    if it's new).
 3. Run `npm test` — the seed-validation test loads every board and asserts 19

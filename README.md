@@ -24,13 +24,18 @@ forward voltage drop in volts (or `OL` = open line).
 ## Using the viewer
 
 1. Pick a console and board revision in the sidebar.
-2. The HDMI connector renders with 19 colour-coded pads (see the legend).
-3. **Hover** a pad for its pin number, signal, and reading.
-4. **Click** a pad (or focus + Space/Enter) to mark it as suspect/damaged —
-   marks persist in your browser and survive reloads.
-5. Use the controls to filter pads by signal class, toggle labels, switch
+2. The HDMI footprint renders as it sits on the board with the connector
+   removed: one row of 19 colour-coded pads, **pin 19 on the left, pin 1 on
+   the right**, with every reading printed under its pad.
+3. **Hover** a pad to see which signal that pin carries.
+4. **Click / tap** a pad (or focus + Space/Enter) to select it — the panel
+   below the connector shows the pin's function, its reading, and any notes.
+   Press Esc or *Deselect* to clear.
+5. In that panel, **Mark damaged** flags the pin (red outline). Marks persist
+   in your browser and survive reloads; *Clear marks* removes them all.
+6. Use the controls to filter pads by signal class, toggle pin numbers, switch
    light/dark theme, or flip to the board/photo view.
-6. **Print** or **Export CSV** for an offline reference of the current board
+7. **Print** or **Export CSV** for an offline reference of the current board
    (exports include your marked pins).
 
 ## Contributing
