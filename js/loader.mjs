@@ -1,8 +1,35 @@
 import { resolveSignalClass, HDMI_PIN_COUNT } from './signals.mjs';
 import { parseValue } from './values.mjs';
+import { padPositions } from './photo.mjs';
 
 const DEFAULT_FETCH =
   typeof fetch !== 'undefined' ? fetch.bind(globalThis) : null;
+
+// photos[] entries are a bare path (a plain picture) or an object that can also
+// carry live pins: { src, caption, size: [w, h], anchors: { "<pin>": [x, y], ... } }.
+// Bad pin data never hides the picture: it is shown without pins, with a warning.
+function normalizePhoto(raw, index, warnings) {
+  const entry = typeof raw === 'string' ? { src: raw } : raw;
+  if (!entry || typeof entry !== 'object' || typeof entry.src !== 'string' || !entry.src) {
+    warnings.push(`photo #${index + 1}: no src, skipped`);
+    return null;
+  }
+  const plain = { src: entry.src, caption: typeof entry.caption === 'string' ? entry.caption : '', size: null, anchors: null };
+  if (entry.anchors == null) return plain;
+
+  const { size, anchors } = entry;
+  if (!(Array.isArray(size) && size.length === 2 && size.every(v => Number.isFinite(v) && v > 0))) {
+    warnings.push(`photo ${entry.src}: anchors need a size [width, height] in pixels; shown without pins`);
+    return plain;
+  }
+  try {
+    padPositions(anchors);
+  } catch (e) {
+    warnings.push(`photo ${entry.src}: ${e.message}; shown without pins`);
+    return plain;
+  }
+  return { ...plain, size, anchors };
+}
 
 export async function loadCatalog(fetchFn = DEFAULT_FETCH) {
   const res = await fetchFn('data/catalog.json');
@@ -75,7 +102,9 @@ export async function loadBoard(entry, fetchFn = DEFAULT_FETCH) {
     confirmedOn: Number(b.confirmedOn) || 1,
     notes: Array.isArray(b.notes) ? b.notes : [],
     connectors,
-    photos: Array.isArray(b.photos) ? b.photos : [],
+    photos: (Array.isArray(b.photos) ? b.photos : [])
+      .map((p, i) => normalizePhoto(p, i, warnings))
+      .filter(Boolean),
     warnings,
   };
 }
