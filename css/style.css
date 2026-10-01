@@ -202,14 +202,30 @@ button.btn:hover { border-color: var(--accent); }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 12px;
-  overflow-x: auto;
+  overflow-x: auto;           /* the 19-pad row scrolls inside this box on phones */
+  -webkit-overflow-scrolling: touch;
 }
-.svg-wrap svg { width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto; }
+.svg-wrap svg {
+  width: 100%;
+  min-width: 620px;           /* keeps every value legible; never squeezes below this */
+  max-width: 900px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+.svg-hint {
+  display: none;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin: 6px 0 0;
+  text-align: center;
+}
 
 /* ---- Pad styling --------------------------------------------------------- */
 .body { fill: var(--surface-2); stroke: var(--border); stroke-width: 1; }
 .pin1-marker { fill: var(--accent); }
-.marker-label { font-size: 9px; fill: var(--text-muted); }
+.marker-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; fill: var(--text-muted); }
+.marker-label.marker-right { text-anchor: end; }
 .pad {
   fill: var(--pad-fill, transparent);
   stroke: var(--pad-stroke);
@@ -240,13 +256,35 @@ button.btn:hover { border-color: var(--accent); }
 }
 /* dimmed by filter */
 .pad-group.dimmed { opacity: 0.22; }
-/* OL: dashed outline, hollow */
-.pad-group.ol .pad { fill: none; stroke-dasharray: 3 2; }
+/* OL: dashed outline, hollow-looking. fill stays painted (transparent) so the
+   pad's whole area still takes hover/click — `fill: none` would make the
+   interior a dead zone. */
+.pad-group.ol .pad { fill: transparent; stroke-dasharray: 3 2; }
 /* low / near-ground: faded fill */
 .pad-group.low .pad { fill-opacity: 0.55; }
 
-.pad-label { font-size: 9px; fill: var(--text); pointer-events: none; text-anchor: middle; }
+.pad-label { font-size: 12px; font-weight: 600; fill: var(--text); pointer-events: none; text-anchor: middle; }
 .hide-labels .pad-label { display: none; }
+
+/* reading under each pad — always visible */
+.pad-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--text);
+  text-anchor: middle;
+  pointer-events: none;
+}
+.pad-group.ol .pad-value  { fill: var(--text-muted); font-style: italic; }
+.pad-group.low .pad-value { fill: var(--text-muted); }
+
+/* selection: accent outline + caret under the value */
+.pad-caret { fill: var(--accent); display: none; pointer-events: none; }
+.pad-group.selected .pad-caret { display: block; }
+.pad-group.selected .pad { stroke: var(--accent); stroke-width: 3; }
+.pad-group.selected .pad-label, .pad-group.selected .pad-value { fill: var(--accent); }
+/* marked + selected: keep the damage colour on the outline, accent on text */
+.pad-group.marked.selected .pad { stroke: var(--accent-mark); }
 
 /* ---- Tooltip ------------------------------------------------------------- */
 .tooltip {
@@ -261,7 +299,53 @@ button.btn:hover { border-color: var(--accent); }
   pointer-events: none;
   white-space: nowrap;
 }
-.tooltip .tt-val { font-weight: 600; }
+.tooltip .tt-val { font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.tooltip .tt-class { color: var(--text-muted); }
+
+/* ---- Pin detail panel ---------------------------------------------------- */
+.pin-detail {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 16px;
+  align-items: start;
+  min-height: 72px;
+}
+.pin-detail.empty {
+  grid-template-columns: 1fr;
+  color: var(--text-muted);
+  border-left-color: var(--border);
+  align-items: center;
+}
+.pin-detail .pd-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.pin-detail .pd-pin { font-size: 1.1rem; font-weight: 700; }
+.pin-detail .pd-name { font-size: 1.05rem; font-weight: 600; }
+.pin-detail .pd-class {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.82rem; color: var(--text-muted);
+}
+.pin-detail .pd-value {
+  grid-column: 2; grid-row: 1 / span 3;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.9rem; font-weight: 700; line-height: 1;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  text-align: center;
+  min-width: 96px;
+}
+.pin-detail .pd-value small { display: block; font: inherit; font-size: 0.7rem; font-weight: 500; color: var(--text-muted); margin-top: 4px; }
+.pin-detail .pd-desc { font-size: 0.88rem; margin: 0; }
+.pin-detail .pd-note { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+.pin-detail .pd-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+.pin-detail .pd-marked-flag { font-size: 0.82rem; color: var(--accent-mark); font-weight: 600; }
+button.btn.danger { border-color: var(--accent-mark); color: var(--accent-mark); }
+button.btn.danger:hover { background: var(--accent-mark); color: #fff; }
 
 /* ---- Legend -------------------------------------------------------------- */
 .legend {
@@ -328,6 +412,9 @@ button.btn:hover { border-color: var(--accent); }
     max-height: 38vh;
   }
   .controls-bar { padding: 10px; gap: 8px; }
+  .svg-hint { display: block; }
+  .pin-detail { grid-template-columns: 1fr; }
+  .pin-detail .pd-value { grid-column: 1; grid-row: auto; justify-self: start; }
 }
 
 /* ---- Print --------------------------------------------------------------- */
@@ -336,4 +423,6 @@ button.btn:hover { border-color: var(--accent); }
   .canvas { position: static; padding: 0; }
   .svg-wrap { border: none; }
   .pad-group.marked .pad { stroke-width: 4; }
+  .svg-wrap svg { min-width: 0; max-width: 100%; }
+  .svg-hint, .pin-detail .pd-actions { display: none; }
 }

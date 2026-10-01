@@ -3,7 +3,8 @@
 import { loadCatalog, loadBoard } from './loader.mjs';
 import { Store } from './store.mjs';
 import { createPinmap } from './pinmap.mjs';
-import { SIGNAL_CLASSES, LEGEND_GROUPS, canonicalSignal } from './signals.mjs';
+import { SIGNAL_CLASSES, LEGEND_GROUPS, pinInfo } from './signals.mjs';
+import { formatValue } from './values.mjs';
 import { el, clear } from './ui.mjs';
 
 const store = new Store();
@@ -137,6 +138,7 @@ function renderUtil(host, board, connector) {
     store.clearMarks(`${board.id}:${connector.id}`);
     currentPinmap?.refresh();
     updateMarkerCounter(board, connector);
+    renderPinDetail(currentPinmap?.selectedPin ?? null);
   } }, '✕ Clear marks'));
   host.appendChild(el('span', { id: 'mark-counter', class: 'control-group' }, 'No pins marked'));
 }
@@ -146,6 +148,56 @@ function updateMarkerCounter(board, connector) {
   if (!span) return;
   const n = store.markedPins(`${board.id}:${connector.id}`).length;
   span.textContent = n === 0 ? 'No pins marked' : `${n} pin${n === 1 ? '' : 's'} marked`;
+}
+
+// Detail panel under the connector: what the selected pin is, its reading,
+// and the explicit "mark damaged" action. Rebuilt on every selection change.
+function renderPinDetail(pin) {
+  const host = document.getElementById('pin-detail');
+  if (!host || !currentConnector) return;
+  clear(host);
+
+  if (pin == null) {
+    host.className = 'pin-detail empty';
+    host.appendChild(el('div', {}, 'Click or tap a pad to see what that pin does. Hover shows it too.'));
+    return;
+  }
+
+  const ep = currentConnector.measurement.pins.find(p => p.num === pin);
+  const info = pinInfo(pin, ep?.signalClass);
+  const marked = currentPinmap?.isMarked(pin) ?? false;
+  host.className = 'pin-detail';
+
+  const sw = el('span', { class: 'swatch' });
+  sw.style.background = `var(${SIGNAL_CLASSES[info.className].cssVar})`;
+
+  host.appendChild(el('div', { class: 'pd-head' }, [
+    el('span', { class: 'pd-pin' }, `Pin ${pin}`),
+    el('span', { class: 'pd-name' }, info.name),
+    // class chip always carries the swatch; the text only when it differs from the name
+    el('span', { class: 'pd-class' }, [sw, info.classDisplayName !== info.name ? info.classDisplayName : null]),
+  ]));
+
+  const valueBox = el('div', { class: 'pd-value' }, ep ? formatValue(ep.parsed) : '—');
+  if (ep?.parsed.kind === 'ol') valueBox.appendChild(el('small', {}, 'open line'));
+  else if (ep?.parsed.kind === 'zero') valueBox.appendChild(el('small', {}, 'short to ground'));
+  else valueBox.appendChild(el('small', {}, currentConnector.measurement.unit || 'V (drop)'));
+  host.appendChild(valueBox);
+
+  host.appendChild(el('p', { class: 'pd-desc' }, info.description));
+  if (ep?.note) host.appendChild(el('p', { class: 'pd-note' }, `Note: ${ep.note}`));
+
+  const actions = el('div', { class: 'pd-actions' });
+  actions.appendChild(el('button', {
+    class: marked ? 'btn' : 'btn danger',
+    onclick: () => { currentPinmap?.toggleMark(pin); renderPinDetail(pin); },
+  }, marked ? '↺ Unmark' : '⚠ Mark damaged'));
+  if (marked) actions.appendChild(el('span', { class: 'pd-marked-flag' }, 'Marked as damaged'));
+  actions.appendChild(el('button', {
+    class: 'btn',
+    onclick: () => currentPinmap?.select(null),
+  }, 'Deselect'));
+  host.appendChild(actions);
 }
 
 function renderInfoPanel(canvas, board) {
@@ -206,6 +258,9 @@ async function selectBoard(cons, entry, btn) {
   // Connector SVG mount + legend
   const svgWrap = el('div', { class: 'svg-wrap' }, el('div', { id: 'pinmap-mount' }));
   canvas.appendChild(svgWrap);
+  canvas.appendChild(el('p', { class: 'svg-hint' }, '← scroll the connector sideways →'));
+  const detailHost = el('div', { id: 'pin-detail', class: 'pin-detail empty' });
+  canvas.appendChild(detailHost);
   const legendHost = el('div', {});
   renderLegend(legendHost);
   canvas.appendChild(legendHost);
@@ -229,6 +284,7 @@ async function selectBoard(cons, entry, btn) {
         currentPinmap = null;
         mount.parentElement.hidden = true;
         legendHost.hidden = true;
+        detailHost.hidden = true;
         renderPhotos(canvas, board);
       } else {
         // remove any photo grid, restore connector
@@ -236,6 +292,7 @@ async function selectBoard(cons, entry, btn) {
         if (pg) pg.remove();
         mount.parentElement.hidden = false;
         legendHost.hidden = false;
+        detailHost.hidden = false;
         bootPinmap(board, currentConnector);
       }
     },
@@ -257,11 +314,18 @@ async function bootPinmap(board, connector) {
       const span = document.getElementById('mark-counter');
       if (span) span.textContent = count === 0 ? 'No pins marked' : `${count} pin${count === 1 ? '' : 's'} marked`;
     },
+    onSelect: (pin) => renderPinDetail(pin),
   });
   currentPinmap.setLabels(labelsVisible);
   currentPinmap.refresh();
   updateMarkerCounter(board, connector);
+  renderPinDetail(null);
 }
+
+// Esc anywhere clears the selection (pads handle their own Esc while focused).
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && currentPinmap?.selectedPin != null) currentPinmap.select(null);
+});
 
 // ---- Boot --------------------------------------------------------------
 (async function boot() {
