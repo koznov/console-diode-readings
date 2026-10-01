@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Console Diode Readings</title>
+  <meta name="description" content="Interactive diode-mode multimeter readings for HDMI ports across PlayStation, Xbox, and Nintendo consoles.">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Apply stored theme before paint to avoid FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('cdr:theme');
+        if (t) document.documentElement.dataset.theme = t;
+      } catch (e) { /* private mode — leave default/auto */ }
+    })();
+  </script>
+</head>
+<body>
+  <div id="app">
+    <aside class="sidebar" id="nav"><!-- populated by app.mjs --></aside>
+    <main class="main">
+      <div class="controls-bar" id="controls"><!-- populated by app.mjs --></div>
+      <section class="canvas" id="canvas">
+        <div id="welcome">
+          <h1>Console Diode Readings</h1>
+          <p>Select a console and board revision from the sidebar to view its HDMI diode-mode readings.</p>
+        </div>
+      </section>
+      <footer class="util" id="util"><!-- populated by app.mjs --></footer>
+    </main>
+  </div>
+  <div id="error-region"></div>
+  <script type="module" src="js/app.mjs"></script>
+</body>
+</html>
