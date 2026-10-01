@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { canonicalSignal, resolveSignalClass, SIGNAL_CLASSES, LEGEND_GROUPS, HDMI_PIN_COUNT } from '../js/signals.mjs';
+import { canonicalSignal, resolveSignalClass, SIGNAL_CLASSES, LEGEND_GROUPS, HDMI_PIN_COUNT, PIN_NAMES, pinInfo } from '../js/signals.mjs';
 
 test('canonicalSignal maps all 19 HDMI pins', () => {
   const classes = [];
@@ -42,5 +42,48 @@ test('LEGEND_GROUPS lists every class exactly once', () => {
   assert.equal(all.length, Object.keys(SIGNAL_CLASSES).length);
   for (const cls of Object.keys(SIGNAL_CLASSES)) {
     assert.equal(all.filter(c => c === cls).length, 1, `${cls} appeared ${all.filter(c=>c===cls).length}x`);
+  }
+});
+
+// ---- Per-pin identity (used by the detail panel + tooltip) ----------------
+
+test('PIN_NAMES names every HDMI pin with its specific line', () => {
+  assert.equal(Object.keys(PIN_NAMES).length, HDMI_PIN_COUNT);
+  assert.equal(PIN_NAMES[1], 'TMDS Data2+');
+  assert.equal(PIN_NAMES[2], 'TMDS Data2 Shield');
+  assert.equal(PIN_NAMES[10], 'TMDS Clock+');
+  assert.equal(PIN_NAMES[13], 'CEC');
+  assert.equal(PIN_NAMES[14], 'Utility / HEAC');
+  assert.equal(PIN_NAMES[15], 'SCL (DDC)');
+  assert.equal(PIN_NAMES[16], 'SDA (DDC)');
+  assert.equal(PIN_NAMES[17], 'DDC/CEC Ground');
+  assert.equal(PIN_NAMES[18], '+5V Power');
+  assert.equal(PIN_NAMES[19], 'Hot Plug Detect');
+});
+
+test('pinInfo bundles name, class, class display name and description', () => {
+  const i = pinInfo(15);
+  assert.equal(i.pin, 15);
+  assert.equal(i.name, 'SCL (DDC)');
+  assert.equal(i.className, 'ddc');
+  assert.equal(i.classDisplayName, 'DDC (SCL/SDA)');
+  assert.match(i.description, /EDID|I²C|I2C/);
+});
+
+test('pinInfo honours a class override but keeps the canonical pin name', () => {
+  const i = pinInfo(2, 'power-5v');
+  assert.equal(i.name, 'TMDS Data2 Shield');
+  assert.equal(i.className, 'power-5v');
+  assert.equal(i.classDisplayName, '+5V Power');
+});
+
+test('pinInfo throws outside 1..19', () => {
+  assert.throws(() => pinInfo(0), RangeError);
+  assert.throws(() => pinInfo(20), RangeError);
+});
+
+test('every signal class carries a non-empty description', () => {
+  for (const [cls, meta] of Object.entries(SIGNAL_CLASSES)) {
+    assert.ok(typeof meta.description === 'string' && meta.description.length > 10, `${cls} lacks description`);
   }
 });
