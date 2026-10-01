@@ -7,8 +7,8 @@
   into the empty .pad-value slot so every reading is visible at once.
   Styling is driven by CSS variables (--sig-*) and classes in css/style.css.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 150" role="img" aria-label="HDMI connector footprint, 19 pads">
-  <title>HDMI Type-A Connector Footprint</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 150" role="group" aria-label="HDMI connector footprint, 19 pads">
+  <!-- Deliberately no SVG title element: browsers render it as a native tooltip on top of ours. -->
 
   <!-- Board outline / connector keep-out -->
   <rect class="body" x="8" y="8" width="724" height="134" rx="10" ry="10"/>

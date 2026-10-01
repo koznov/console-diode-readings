@@ -54,3 +54,9 @@ test('pads are evenly spaced', () => {
     assert.ok(Math.abs((xs[i] - xs[i - 1]) - pitch) < 0.01, `uneven pitch between pad ${i - 1} and ${i}`);
   }
 });
+
+test('template has no <title> (it would surface as a native browser tooltip over our own)', () => {
+  assert.doesNotMatch(SVG, /<title>/);
+  assert.match(SVG, /aria-label="/);
+  assert.match(SVG, /role="group"/);
+});
