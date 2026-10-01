@@ -77,39 +77,47 @@ function renderNav(cat, onSelect) {
   }
 }
 
-// Legend doubles as the signal filter: hover a chip → its pins light up,
-// click → pin that signal (and show its description below the connector).
-// Chips are ordered by LEGEND_GROUPS but the group captions are not shown.
+// Legend is a list of signals — swatch, name, pins and description all
+// visible at once — and doubles as the signal filter: hover a row → its
+// pins light up, click → pin that signal. Rows follow LEGEND_GROUPS order;
+// the group captions are not shown.
 function renderLegend(host) {
   clear(host);
   host.className = 'legend';
   host.appendChild(el('div', { class: 'legend-head' }, [
     el('span', { class: 'legend-title' }, 'Signals'),
-    el('span', { class: 'legend-hint' }, 'hover a signal to highlight its pins · click to pin it'),
   ]));
-  const chips = el('div', { class: 'legend-chips', role: 'group', 'aria-label': 'Signal classes' });
+  const list = el('div', { class: 'legend-list', role: 'group', 'aria-label': 'Signal classes' });
   for (const grp of LEGEND_GROUPS) {
     for (const cls of grp.classes) {
       const meta = SIGNAL_CLASSES[cls];
       const sw = el('span', { class: 'swatch' });
       sw.style.background = `var(${meta.cssVar})`;
       const pins = pinsForClass(cls);
-      const chip = el('button', {
+      const row = el('button', {
         class: 'legend-chip',
         type: 'button',
         'aria-pressed': 'false',
-        title: meta.description,
         onmouseenter: () => setLegendHover(cls),
         onmouseleave: () => setLegendHover(null),
         onfocus: () => setLegendHover(cls),
         onblur: () => setLegendHover(null),
         onclick: () => toggleSignalFilter(cls),
-      }, [sw, el('span', {}, meta.displayName), el('span', { class: 'chip-pins' }, pins.join(','))]);
-      chip.dataset.class = cls;
-      chips.appendChild(chip);
+      }, [
+        sw,
+        el('span', { class: 'chip-body' }, [
+          el('span', { class: 'chip-head' }, [
+            el('span', { class: 'chip-name' }, meta.displayName),
+            el('span', { class: 'chip-pins' }, `pin${pins.length === 1 ? '' : 's'} ${pins.join(', ')}`),
+          ]),
+          el('span', { class: 'chip-desc' }, meta.description),
+        ]),
+      ]);
+      row.dataset.class = cls;
+      list.appendChild(row);
     }
   }
-  host.appendChild(chips);
+  host.appendChild(list);
   syncLegend();
 }
 
@@ -204,7 +212,7 @@ function renderPinDetail(pin) {
     const cls = currentPinmap?.filter ?? 'all';
     if (cls !== 'all') { renderSignalDetail(host, cls); return; }
     host.className = 'pin-detail empty';
-    host.appendChild(el('div', {}, 'Click or tap a pad to see what that pin does. Hover a signal below to find its pins.'));
+    host.appendChild(el('div', {}, 'Click or tap a pad to see that pin\u2019s reading and notes. In the Signals list below, hover a row to light up its pins, click to pin it.'));
     return;
   }
 
@@ -259,7 +267,9 @@ function renderPinDetail(pin) {
   host.appendChild(actions);
 }
 
-// Signal view: shown when a legend chip is pinned and no pin is selected.
+// Signal view: shown when a legend row is pinned and no pin is selected.
+// The description is already visible in the legend list, so this only
+// lists the signal's pins with their readings.
 function renderSignalDetail(host, cls) {
   const meta = SIGNAL_CLASSES[cls];
   host.className = 'pin-detail signal';
@@ -267,8 +277,8 @@ function renderSignalDetail(host, cls) {
   sw.style.background = `var(${meta.cssVar})`;
   host.appendChild(el('div', { class: 'pd-head' }, [
     el('span', { class: 'pd-pin' }, [sw, ` ${meta.displayName}`]),
+    el('span', { class: 'pd-class' }, 'pins on this board'),
   ]));
-  host.appendChild(el('p', { class: 'pd-desc' }, meta.description));
 
   const list = el('div', { class: 'pd-pinlist' });
   for (const p of currentConnector.measurement.pins.filter(p => p.signalClass === cls)) {

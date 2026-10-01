@@ -34,9 +34,10 @@ forward voltage drop in volts (or `OL` = open line).
    Press Esc or *Deselect* to clear.
 5. In that panel, **Mark damaged** flags the pin (red outline). Marks persist
    in your browser and survive reloads; *Clear marks* removes them all.
-6. The **Signals** legend is interactive: hover a signal to light up its
-   pins, click to pin it — the panel then lists that signal's pins and
-   readings. Click again, *Show all pins*, or Esc to release.
+6. The **Signals** list below describes every signal class (pins and what
+   the line does) and is interactive: hover a row to light up its pins,
+   click to pin it — the panel then lists that signal's pins and readings.
+   Click again, *Show all pins*, or Esc to release.
 7. Use the controls to toggle pin numbers, switch light/dark theme, or flip
    to the board/photo view.
 8. **Print** or **Export CSV** for an offline reference of the current board
