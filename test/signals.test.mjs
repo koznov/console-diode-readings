@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { canonicalSignal, resolveSignalClass, SIGNAL_CLASSES, LEGEND_GROUPS, HDMI_PIN_COUNT, PIN_NAMES, pinInfo } from '../js/signals.mjs';
+import { canonicalSignal, resolveSignalClass, SIGNAL_CLASSES, LEGEND_GROUPS, HDMI_PIN_COUNT, PIN_NAMES, PIN_SHORT, pinInfo, pinsForClass } from '../js/signals.mjs';
 
 test('canonicalSignal maps all 19 HDMI pins', () => {
   const classes = [];
@@ -86,4 +86,27 @@ test('every signal class carries a non-empty description', () => {
   for (const [cls, meta] of Object.entries(SIGNAL_CLASSES)) {
     assert.ok(typeof meta.description === 'string' && meta.description.length > 10, `${cls} lacks description`);
   }
+});
+
+// ---- Schematic short names (as printed on the HDMI_A symbol) --------------
+test('PIN_SHORT gives the schematic label for every pin', () => {
+  assert.deepEqual(
+    Array.from({ length: HDMI_PIN_COUNT }, (_, i) => PIN_SHORT[i + 1]),
+    ['D2+', 'GND', 'D2−', 'D1+', 'GND', 'D1−', 'D0+', 'GND', 'D0−',
+     'CK+', 'GND', 'CK−', 'CEC', 'UTILITY', 'SCL', 'SDA', 'GND', '+5V', 'HPD'],
+  );
+});
+
+test('pinInfo carries the short schematic name too', () => {
+  assert.equal(pinInfo(15).short, 'SCL');
+  assert.equal(pinInfo(19).short, 'HPD');
+  assert.equal(pinInfo(2).short, 'GND');
+});
+
+test('pinsForClass lists the canonical pins of a class in ascending order', () => {
+  assert.deepEqual(pinsForClass('gnd'), [2, 5, 8, 11, 17]);
+  assert.deepEqual(pinsForClass('tmds-data-pos'), [1, 4, 7]);
+  assert.deepEqual(pinsForClass('ddc'), [15, 16]);
+  assert.deepEqual(pinsForClass('hpd'), [19]);
+  assert.deepEqual(pinsForClass('nope'), []);
 });

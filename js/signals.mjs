@@ -26,6 +26,16 @@ export const SIGNAL_CLASSES = {
                      description: 'Sink pulls this high to tell the console a display is attached; the console only starts video after it sees HPD.' },
 };
 
+// Short labels as printed on the HDMI_A schematic symbol. Primary name in the UI.
+export const PIN_SHORT = {
+  1: 'D2+',  2: 'GND', 3: 'D2−',
+  4: 'D1+',  5: 'GND', 6: 'D1−',
+  7: 'D0+',  8: 'GND', 9: 'D0−',
+  10: 'CK+', 11: 'GND', 12: 'CK−',
+  13: 'CEC', 14: 'UTILITY', 15: 'SCL', 16: 'SDA',
+  17: 'GND', 18: '+5V', 19: 'HPD',
+};
+
 // Specific line on each HDMI Type-A pin (the class above groups these).
 export const PIN_NAMES = {
   1: 'TMDS Data2+',  2: 'TMDS Data2 Shield',  3: 'TMDS Data2−',
@@ -68,11 +78,20 @@ export function pinInfo(pin, override) {
   const meta = SIGNAL_CLASSES[className];
   return {
     pin,
+    short: PIN_SHORT[pin],
     name: PIN_NAMES[pin],
     className,
     classDisplayName: meta.displayName,
     description: meta.description,
   };
+}
+
+// Canonical pins carrying a class, ascending. Unknown class → [].
+export function pinsForClass(className) {
+  return Object.entries(PIN_CLASS)
+    .filter(([, cls]) => cls === className)
+    .map(([pin]) => Number(pin))
+    .sort((a, b) => a - b);
 }
 
 export const LEGEND_GROUPS = (() => {
