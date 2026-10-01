@@ -96,6 +96,9 @@ body {
   overflow-x: hidden;
 }
 a { color: var(--accent); }
+/* Author display rules (.pin-detail grid, .photo-bar flex, .svg-hint on phones)
+   would otherwise beat the browser's [hidden] rule and leave "hidden" panels showing. */
+[hidden] { display: none !important; }
 
 /* ---- Layout -------------------------------------------------------------- */
 #app {
@@ -311,6 +314,53 @@ button.btn:hover { border-color: var(--accent); }
 .pad-group.selected .pad-label, .pad-group.selected .pad-value { fill: var(--accent); }
 /* marked + selected: keep the damage colour on the outline, accent on text */
 .pad-group.marked.selected .pad { stroke: var(--accent-mark); }
+
+/* ---- Photo surface ------------------------------------------------------- */
+/* Pads drawn over a board photo (js/photo.mjs): same classes as the schematic,
+   but each pad is a see-through ring in its signal colour so the real contact
+   stays visible underneath. Specificity is kept below the state rules above
+   (highlight / selected / marked / hover), which therefore still win. */
+.pad-group[data-class="gnd"]           { --pad-sig: var(--sig-gnd); }
+.pad-group[data-class="power-5v"]      { --pad-sig: var(--sig-power-5v); }
+.pad-group[data-class="tmds-data-pos"] { --pad-sig: var(--sig-tmds-data-pos); }
+.pad-group[data-class="tmds-data-neg"] { --pad-sig: var(--sig-tmds-data-neg); }
+.pad-group[data-class="tmds-clk-pos"]  { --pad-sig: var(--sig-tmds-clk-pos); }
+.pad-group[data-class="tmds-clk-neg"]  { --pad-sig: var(--sig-tmds-clk-neg); }
+.pad-group[data-class="ddc"]           { --pad-sig: var(--sig-ddc); }
+.pad-group[data-class="cec"]           { --pad-sig: var(--sig-cec); }
+.pad-group[data-class="utility"]       { --pad-sig: var(--sig-utility); }
+.pad-group[data-class="hpd"]           { --pad-sig: var(--sig-hpd); }
+
+.photo-surface .pad { fill-opacity: 0.3; stroke: var(--pad-sig, var(--pad-stroke)); stroke-width: 2; }
+.photo-surface .pad-group.low .pad { fill-opacity: 0.16; }
+.photo-surface .pad-group:hover .pad { stroke-width: 3.5; }
+.photo-surface .pad-group.ol .pad { fill-opacity: 0; stroke-dasharray: 4 3; }
+/* text sits on a photograph: a halo in the page colour keeps it readable on any board */
+.photo-surface .pad-label, .photo-surface .pad-value, .photo-surface .pad-value-adj {
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+/* whole-photo framing: the strip shrinks to ~0.6x, too small for text — rings only,
+   the tooltip and the pin panel carry the numbers */
+.photo-full .pad-label, .photo-full .pad-value, .photo-full .pad-value-adj { display: none; }
+.photo-full .pad { stroke-width: 3.5; }
+
+.photo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+.photo-bar .pb-caption { color: var(--text-muted); font-size: 0.88rem; }
+.photo-bar .pb-frame { display: inline-flex; }
+.photo-bar .pb-frame .btn { padding: 4px 12px; font-size: 0.85rem; border-radius: 0; }
+.photo-bar .pb-frame .btn:first-child { border-radius: 6px 0 0 6px; }
+.photo-bar .pb-frame .btn:last-child { border-radius: 0 6px 6px 0; margin-left: -1px; }
+.photo-bar .pb-frame .btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 /* ---- Tooltip ------------------------------------------------------------- */
 .tooltip {
@@ -559,6 +609,6 @@ button.btn.danger:hover { background: var(--accent-mark); color: #fff; }
   .svg-wrap { border: none; }
   .pad-group.marked .pad { stroke-width: 4; }
   .svg-wrap svg { min-width: 0; max-width: 100%; }
-  .svg-hint, .pin-detail .pd-actions, .meter-note .mn-calc { display: none; }
+  .svg-hint, .pin-detail .pd-actions, .meter-note .mn-calc, .photo-bar .pb-frame { display: none; }
   .legend-chip { border-color: var(--border); break-inside: avoid; }
 }

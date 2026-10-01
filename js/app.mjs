@@ -396,15 +396,17 @@ function renderWarnings(canvas, board) {
   ]));
 }
 
-function renderPhotos(canvas, board) {
-  if (!board.photos.length) {
+// Plain pictures (no pins): the whole gallery when a board has no live photo,
+// otherwise just the photos besides the one serving as the pinmap surface.
+function renderPhotos(canvas, board, photos = board.photos) {
+  if (!photos.length) {
     canvas.appendChild(el('div', { class: 'empty-photos' },
       'No photos yet for this revision. Photos can be contributed via the repository (see CONTRIBUTING.md).'));
     return;
   }
   const grid = el('div', { class: 'photo-grid' });
-  for (const src of board.photos) {
-    grid.appendChild(el('img', { src, alt: `${board.revision} photo`, loading: 'lazy' }));
+  for (const p of photos) {
+    grid.appendChild(el('img', { src: p.src, alt: p.caption || `${board.revision} photo`, loading: 'lazy' }));
   }
   canvas.appendChild(grid);
 }
@@ -434,9 +436,12 @@ async function selectBoard(cons, entry, btn) {
   renderMeterNote(canvas, currentConnector);
 
   // Connector SVG mount + legend
+  const photoBar = el('div', { class: 'photo-bar', hidden: '' });
+  canvas.appendChild(photoBar);
   const svgWrap = el('div', { class: 'svg-wrap' }, el('div', { id: 'pinmap-mount' }));
   canvas.appendChild(svgWrap);
-  canvas.appendChild(el('p', { class: 'svg-hint' }, '← scroll the connector sideways →'));
+  const svgHint = el('p', { class: 'svg-hint' }, '← scroll the connector sideways →');
+  canvas.appendChild(svgHint);
   const detailHost = el('div', { id: 'pin-detail', class: 'pin-detail empty' });
   canvas.appendChild(detailHost);
   const legendHost = el('div', {});
@@ -447,6 +452,47 @@ async function selectBoard(cons, entry, btn) {
   renderWarnings(canvas, board);
   renderInfoPanel(canvas, board);
 
+  // Board / photo view. A photo that carries pin anchors replaces the schematic as
+  // the pinmap surface — same legend, pin panel, marks and calibration — and the
+  // other photos stay plain thumbnails below. A board with no such photo keeps
+  // the plain gallery (or the "no photos yet" note).
+  let photoFraming = 'focus'; // 'focus' = the pad strip, 'full' = the whole picture
+
+  function renderPhotoBar(live) {
+    clear(photoBar);
+    photoBar.hidden = !live;
+    if (!live) return;
+    const frame = (mode, label) => el('button', {
+      type: 'button',
+      class: 'btn',
+      'aria-pressed': String(photoFraming === mode),
+      onclick: () => { photoFraming = mode; currentPinmap?.setView(mode); renderPhotoBar(live); },
+    }, label);
+    photoBar.appendChild(el('span', { class: 'pb-caption' }, live.caption || `${board.revision} photo`));
+    photoBar.appendChild(el('div', { class: 'pb-frame', role: 'group', 'aria-label': 'Photo framing' }, [
+      frame('focus', 'Pads'), frame('full', 'Whole photo'),
+    ]));
+  }
+
+  async function showView(mode) {
+    canvas.querySelectorAll('.photo-grid, .empty-photos').forEach(n => n.remove());
+    currentPinmap?.destroy();
+    currentPinmap = null;
+
+    const live = mode === 'board' ? (board.photos.find(p => p.anchors) ?? null) : null;
+    const galleryOnly = mode === 'board' && !live;
+    for (const n of [svgWrap, svgHint, legendHost, detailHost]) n.hidden = galleryOnly;
+    renderPhotoBar(live);
+
+    if (galleryOnly) { renderPhotos(canvas, board); return; }
+    await bootPinmap(board, currentConnector, live);
+    if (live) {
+      currentPinmap.setView(photoFraming);
+      const others = board.photos.filter(p => p !== live);
+      if (others.length) renderPhotos(canvas, board, others);
+    }
+  }
+
   // Controls + util
   renderControls(document.getElementById('controls'), {
     onToggleLabels: (on) => { labelsVisible = on; store.set('labels', String(on)); currentPinmap?.setLabels(on); },
@@ -454,32 +500,14 @@ async function selectBoard(cons, entry, btn) {
       const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       applyTheme(cur === 'dark' ? 'light' : 'dark');
     },
-    onViewMode: (mode) => {
-      const mount = document.getElementById('pinmap-mount');
-      if (mode === 'board') {
-        currentPinmap?.destroy();
-        currentPinmap = null;
-        mount.parentElement.hidden = true;
-        legendHost.hidden = true;
-        detailHost.hidden = true;
-        renderPhotos(canvas, board);
-      } else {
-        // remove any photo grid, restore connector
-        const pg = canvas.querySelector('.photo-grid, .empty-photos');
-        if (pg) pg.remove();
-        mount.parentElement.hidden = false;
-        legendHost.hidden = false;
-        detailHost.hidden = false;
-        bootPinmap(board, currentConnector);
-      }
-    },
+    onViewMode: showView,
   });
   renderUtil(document.getElementById('util'), board, currentConnector);
 
   await bootPinmap(board, currentConnector);
 }
 
-async function bootPinmap(board, connector) {
+async function bootPinmap(board, connector, photo = null) {
   const mount = document.getElementById('pinmap-mount');
   if (!mount) return;
   currentPinmap = await createPinmap({
@@ -487,6 +515,7 @@ async function bootPinmap(board, connector) {
     connector,
     board,
     store,
+    photo,
     onChange: (_scope, count) => {
       const span = document.getElementById('mark-counter');
       if (span) span.textContent = count === 0 ? 'No pins marked' : `${count} pin${count === 1 ? '' : 's'} marked`;

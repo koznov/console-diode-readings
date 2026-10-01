@@ -13,18 +13,22 @@
 
 import { pinInfo } from './signals.mjs';
 import { formatValue, emphasisKind, scaleReading } from './values.mjs';
+import { photoSvgMarkup, photoViewBox } from './photo.mjs';
 import { clear } from './ui.mjs';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const svgCache = new Map();
 
+function parseSvg(txt) {
+  const holder = document.createElementNS(SVG_NS, 'svg');
+  holder.innerHTML = txt.trim();
+  return holder.querySelector('svg') || holder;
+}
+
 async function loadSvg(path) {
   if (svgCache.has(path)) return svgCache.get(path);
   const res = await fetch(path);
-  const txt = await res.text();
-  const holder = document.createElementNS(SVG_NS, 'svg');
-  holder.innerHTML = txt.trim();
-  const node = holder.querySelector('svg') || holder;
+  const node = parseSvg(await res.text());
   svgCache.set(path, node);
   return node;
 }
@@ -39,11 +43,13 @@ function escapeHtml(s) {
  * @param {Object} opts.connector       normalized connector (from loader)
  * @param {Object} opts.board            normalized board (from loader)
  * @param {import('./store.mjs').Store} opts.store
+ * @param {Object} [opts.photo]  a board photo that carries pin anchors (from the loader): the pads are
+ *                               drawn over this picture instead of the schematic template
  * @param {(scope:string,count:number)=>void} [opts.onChange] called after a mark toggles
  * @param {(pin:number|null)=>void}          [opts.onSelect] called when the selected pin changes
  * @param {(pin:number|null)=>void}          [opts.onHover]  called on pad mouseenter / mouseleave
  */
-export async function createPinmap({ container, connector, board, store, onChange, onSelect, onHover }) {
+export async function createPinmap({ container, connector, board, store, photo = null, onChange, onSelect, onHover }) {
   const scope = `${board.id}:${connector.id}`;
   let activeFilter = 'all';   // pinned by click (legend chip)
   let highlight = null;       // transient, legend hover; wins over activeFilter while set
@@ -51,9 +57,11 @@ export async function createPinmap({ container, connector, board, store, onChang
   let calibration = null;     // numeric factor (yours / ours) or null
   let tipEl = null;
 
-  const svgRoot = await loadSvg(connector.svgTemplate);
+  const svgRoot = photo ? parseSvg(photoSvgMarkup(photo)) : await loadSvg(connector.svgTemplate);
   clear(container);
   container.appendChild(document.importNode(svgRoot, true));
+  container.classList.toggle('photo-surface', photo != null);
+  container.classList.remove('photo-full');
 
   const groups = [...container.querySelectorAll('.pad-group')];
   const groupByPin = new Map(groups.map(g => [Number(g.dataset.pin), g]));
@@ -186,7 +194,17 @@ export async function createPinmap({ container, connector, board, store, onChang
     setFilter(c) { activeFilter = c ?? 'all'; refresh(); },
     setHighlight(c) { highlight = c ?? null; refresh(); },
     setLabels(on) { container.classList.toggle('hide-labels', !on); },
+    // photo surfaces only: 'focus' = the pad strip at schematic scale, 'full' = the whole picture
+    setView(mode) {
+      if (!photo) return;
+      container.querySelector('svg').setAttribute('viewBox', photoViewBox(photo, mode).join(' '));
+      container.classList.toggle('photo-full', mode === 'full');
+    },
     focusPin(pin) { groupByPin.get(pin)?.focus(); },
-    destroy() { hideTip(); clear(container); },
+    destroy() {
+      hideTip();
+      clear(container);
+      container.classList.remove('photo-surface', 'photo-full');
+    },
   };
 }
