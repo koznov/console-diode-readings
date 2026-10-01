@@ -17,9 +17,11 @@ readings use:
    marking, e.g. `CFI-1216A`, `CECHK04`, `Zephyr`). Readings can differ
    between revisions, so this matters.
 
-Values vary between meters and boards — that's expected. If you measure more
-than one console of the same revision, say how many and flag any pin that
-differs between them.
+Values vary between meters (typically 5–10 %) and between boards — that's
+expected, which is why the **meter model** matters: readers calibrate the
+site's numbers to their own meter, and knowing what yours was helps them
+judge the offset. If you measure more than one console of the same revision,
+say how many and flag any pin that differs between them.
 
 ## How to submit
 

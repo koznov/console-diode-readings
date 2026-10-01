@@ -16,10 +16,14 @@ All readings are taken in **multimeter diode mode** with the **red probe on
 ground** and the **black probe on the pin in question**. Values are the
 forward voltage drop in volts (or `OL` = open line).
 
-> ⚠️ Readings will not always be exact. Expect some variation between meters
-> and between board revisions. Where the original measurer confirmed a
-> reading across multiple consoles, that count is shown. Revision-specific
-> caveats appear in the notes panel under the connector.
+> ⚠️ **Compare patterns, not digits.** Different multimeters read roughly
+> 5–10 % apart, so every value here will be offset on your meter. Measure
+> one known-good pin on your board, type it into the **Calibrate** box
+> under the board title, and the viewer rescales all other readings to
+> your meter. What actually matters is that pins of the same signal read
+> alike on *your* board and that nothing is OL or 0 where it shouldn't be.
+> Where the original measurer confirmed a reading across multiple consoles,
+> that count is shown; revision-specific caveats appear in the notes panel.
 
 ## Using the viewer
 
