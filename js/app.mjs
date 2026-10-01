@@ -4,7 +4,7 @@ import { loadCatalog, loadBoard } from './loader.mjs';
 import { Store } from './store.mjs';
 import { createPinmap } from './pinmap.mjs';
 import { SIGNAL_CLASSES, LEGEND_GROUPS, pinInfo, pinsForClass } from './signals.mjs';
-import { formatValue } from './values.mjs';
+import { formatValue, calibrationFactor, scaleReading, formatOffset } from './values.mjs';
 import { el, clear } from './ui.mjs';
 
 const store = new Store();
@@ -12,6 +12,7 @@ let currentPinmap = null;
 let currentBoard = null;
 let currentConnector = null;
 let labelsVisible = store.get('labels', 'true') !== 'false';
+let calibration = null; // { factor, refPin, yours } — in-memory only, per loaded board
 
 // ---- Theme -------------------------------------------------------------
 function applyTheme(theme) {
@@ -201,6 +202,79 @@ function updateMarkerCounter(board, connector) {
   span.textContent = n === 0 ? 'No pins marked' : `${n} pin${n === 1 ? '' : 's'} marked`;
 }
 
+// Meter-variance banner with the calibration calculator. The user types
+// their own reading for one numeric reference pin; every other numeric
+// reading is rescaled by that ratio and shown as a second row under the pads.
+function renderMeterNote(canvas, connector) {
+  const numericPins = connector.measurement.pins.filter(p => p.parsed.kind === 'numeric');
+  const defaultRef = numericPins.find(p => p.signalClass === 'tmds-data-pos') ?? numericPins[0] ?? null;
+
+  const note = el('div', { class: 'meter-note', role: 'note' });
+  note.appendChild(el('p', { class: 'mn-text' }, [
+    el('b', {}, '⚠ Readings vary by meter — compare patterns, not digits. '),
+    'Different multimeters read roughly 5–10 % apart, so expect every value here to be offset on yours. ',
+    'Measure one known-good pin on your board, enter it below, and we rescale the rest. ',
+    'What matters: pins of the same signal read alike, and nothing is OL or 0 where it shouldn\u2019t be.',
+  ]));
+
+  if (!defaultRef) return canvas.appendChild(note);
+
+  const refSel = el('select', { id: 'cal-ref', 'aria-label': 'Reference pin' });
+  for (const p of numericPins) {
+    const info = pinInfo(p.num, p.signalClass);
+    refSel.appendChild(el('option', { value: String(p.num) }, `pin ${p.num} ${info.short}`));
+  }
+  refSel.value = String(calibration?.refPin ?? defaultRef.num);
+
+  const ours = el('span', { class: 'mn-ours' });
+  const input = el('input', {
+    id: 'cal-yours', type: 'text', inputmode: 'decimal', placeholder: '0.00',
+    'aria-label': 'Your reading for the reference pin, volts',
+    autocomplete: 'off',
+  });
+  if (calibration) input.value = calibration.yours;
+  const result = el('span', { class: 'mn-result off' }, 'offset —');
+  const clearBtn = el('button', { class: 'mn-clear', type: 'button' }, 'clear');
+
+  const refPinOf = () => connector.measurement.pins.find(p => p.num === Number(refSel.value));
+  const syncOurs = () => { ours.textContent = `ours ${formatValue(refPinOf().parsed)} → yours`; };
+
+  function apply() {
+    const raw = input.value.trim();
+    input.classList.remove('bad');
+    if (raw === '') { setCalibration(null); result.textContent = 'offset —'; result.className = 'mn-result off'; return; }
+    try {
+      const factor = calibrationFactor(refPinOf().parsed, raw);
+      setCalibration({ factor, refPin: Number(refSel.value), yours: raw });
+      result.textContent = `offset ${formatOffset(factor)}`;
+      result.className = 'mn-result';
+    } catch (_) {
+      input.classList.add('bad');
+      setCalibration(null);
+      result.textContent = 'enter a number like 0.83';
+      result.className = 'mn-result off';
+    }
+  }
+
+  refSel.addEventListener('change', () => { syncOurs(); apply(); });
+  input.addEventListener('input', apply);
+  clearBtn.addEventListener('click', () => { input.value = ''; apply(); input.focus(); });
+
+  note.appendChild(el('div', { class: 'mn-calc' }, [
+    el('label', { for: 'cal-ref' }, 'Calibrate:'),
+    refSel, ours, input, el('span', { class: 'mn-ours' }, 'V'), result, clearBtn,
+  ]));
+  canvas.appendChild(note);
+  syncOurs();
+  if (calibration) apply();
+}
+
+function setCalibration(cal) {
+  calibration = cal;
+  currentPinmap?.setCalibration(cal?.factor ?? null);
+  renderPinDetail(currentPinmap?.selectedPin ?? null);
+}
+
 // Detail panel under the connector: what the selected pin is, its reading,
 // and the explicit "mark damaged" action. Rebuilt on every selection change.
 function renderPinDetail(pin) {
@@ -248,10 +322,17 @@ function renderPinDetail(pin) {
   const valueBox = el('div', { class: 'pd-value' }, ep ? formatValue(ep.parsed) : '—');
   if (ep?.parsed.kind === 'ol') valueBox.appendChild(el('small', {}, 'open line'));
   else if (ep?.parsed.kind === 'zero') valueBox.appendChild(el('small', {}, 'connected to ground'));
-  else valueBox.appendChild(el('small', {}, currentConnector.measurement.unit || 'V (drop)'));
+  else {
+    valueBox.appendChild(el('small', {}, currentConnector.measurement.unit || 'V (drop)'));
+    const scaled = calibration && ep ? scaleReading(ep.parsed, calibration.factor) : null;
+    if (scaled) valueBox.appendChild(el('span', { class: 'pd-adj' }, `≈ ${formatValue(scaled)} on your meter`));
+  }
   host.appendChild(valueBox);
 
   host.appendChild(el('p', { class: 'pd-desc' }, info.description));
+  if (ep?.parsed.kind === 'numeric') {
+    host.appendChild(el('p', { class: 'pd-tol' }, 'Expect ±5–10 % between multimeters; compare against the other pins of the same signal on your board.'));
+  }
   if (ep?.note) host.appendChild(el('p', { class: 'pd-note' }, `Note: ${ep.note}`));
 
   const actions = el('div', { class: 'pd-actions' });
@@ -344,11 +425,13 @@ async function selectBoard(cons, entry, btn) {
   }
   currentBoard = board;
   currentConnector = board.connectors[0]; // HDMI is the first/only connector today
+  calibration = null; // a calibration belongs to one board's readings
 
   // Title + meta
   canvas.appendChild(el('h2', { class: 'connector-title' }, `${cons.name} — ${currentConnector.label}`));
   canvas.appendChild(el('div', { class: 'connector-meta' },
     `${currentConnector.type} · ${board.revision} · diode mode (red probe on GND)`));
+  renderMeterNote(canvas, currentConnector);
 
   // Connector SVG mount + legend
   const svgWrap = el('div', { class: 'svg-wrap' }, el('div', { id: 'pinmap-mount' }));
@@ -417,6 +500,7 @@ async function bootPinmap(board, connector) {
     },
   });
   currentPinmap.setLabels(labelsVisible);
+  currentPinmap.setCalibration(calibration?.factor ?? null);
   currentPinmap.refresh();
   updateMarkerCounter(board, connector);
   syncLegend();

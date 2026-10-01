@@ -8,10 +8,11 @@
 // (toggleMark) so an accidental tap never flips a mark.
 // setFilter(cls) pins a class filter; setHighlight(cls) is its transient
 // hover twin (legend hover). onHover(pin|null) lets the host mirror pad
-// hover back into the legend.
+// hover back into the legend. setCalibration(factor|null) writes each
+// numeric reading rescaled to the user's meter into the .pad-value-adj slot.
 
 import { pinInfo } from './signals.mjs';
-import { formatValue, emphasisKind } from './values.mjs';
+import { formatValue, emphasisKind, scaleReading } from './values.mjs';
 import { clear } from './ui.mjs';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -47,6 +48,7 @@ export async function createPinmap({ container, connector, board, store, onChang
   let activeFilter = 'all';   // pinned by click (legend chip)
   let highlight = null;       // transient, legend hover; wins over activeFilter while set
   let selectedPin = null;
+  let calibration = null;     // numeric factor (yours / ours) or null
   let tipEl = null;
 
   const svgRoot = await loadSvg(connector.svgTemplate);
@@ -158,10 +160,22 @@ export async function createPinmap({ container, connector, board, store, onChang
     }
   }
 
+  function applyCalibration() {
+    for (const g of groups) {
+      const slot = g.querySelector('.pad-value-adj');
+      if (!slot) continue;
+      const ep = pinsById.get(Number(g.dataset.pin));
+      const scaled = (calibration != null && ep) ? scaleReading(ep.parsed, calibration) : null;
+      slot.textContent = scaled ? scaled.raw : '';
+    }
+    container.classList.toggle('calibrated', calibration != null);
+  }
+
   return {
     refresh,
     select,
     toggleMark,
+    setCalibration(f) { calibration = (typeof f === 'number' && Number.isFinite(f) && f > 0) ? f : null; applyCalibration(); },
     get selectedPin() { return selectedPin; },
     get filter() { return activeFilter; },
     isMarked(pin) { return store.isMarked(scope, pin); },

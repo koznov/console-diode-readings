@@ -289,6 +289,19 @@ button.btn:hover { border-color: var(--accent); }
 .pad-group.ol .pad-value  { fill: var(--text-muted); font-style: italic; }
 .pad-group.low .pad-value { fill: var(--text-muted); }
 
+/* meter-calibrated reading (second row) — only while a calibration is set */
+.pad-value-adj {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  fill: var(--accent);
+  text-anchor: middle;
+  pointer-events: none;
+  display: none;
+}
+.calibrated .pad-value-adj { display: block; }
+.calibrated .pad-value { fill: var(--text-muted); font-weight: 500; }
+.calibrated .pad-group.ol .pad-value, .calibrated .pad-group.low .pad-value { fill: var(--text-muted); }
+
 /* selection: accent outline + caret under the value */
 .pad-caret { fill: var(--accent); display: none; pointer-events: none; }
 .pad-group.selected .pad-caret { display: block; }
@@ -312,6 +325,55 @@ button.btn:hover { border-color: var(--accent); }
 }
 .tooltip .tt-val { font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .tooltip .tt-class { color: var(--text-muted); }
+
+/* ---- Meter-variance banner + calibration ---------------------------------- */
+.meter-note {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid #f59e0b;
+  border-radius: var(--radius);
+  font-size: 0.86rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.meter-note .mn-text { margin: 0; }
+.meter-note .mn-text b { font-weight: 700; }
+.meter-note .mn-calc {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 6px 10px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  min-width: 0;
+}
+.meter-note .mn-calc label { font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; }
+.meter-note .mn-calc select, .meter-note .mn-calc input {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text);
+}
+.meter-note .mn-calc input { width: 5.5em; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.meter-note .mn-calc input.bad { border-color: var(--accent-mark); }
+.meter-note .mn-ours { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--text-muted); font-size: 0.82rem; white-space: nowrap; }
+.meter-note .mn-result {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.meter-note .mn-result.off { color: var(--text-muted); font-weight: 500; }
+.meter-note .mn-clear { font: inherit; font-size: 0.8rem; background: none; border: none; color: var(--text-muted); cursor: pointer; text-decoration: underline; padding: 0 2px; }
+.meter-note .mn-clear:hover { color: var(--text); }
 
 /* ---- Pin detail panel ---------------------------------------------------- */
 .pin-detail {
@@ -362,6 +424,8 @@ button.btn:hover { border-color: var(--accent); }
   min-width: 96px;
 }
 .pin-detail .pd-value small { display: block; font: inherit; font-size: 0.7rem; font-weight: 500; color: var(--text-muted); margin-top: 4px; }
+.pin-detail .pd-value .pd-adj { display: block; font: inherit; font-size: 0.95rem; font-weight: 600; color: var(--accent); margin-top: 6px; }
+.pin-detail .pd-tol { font-size: 0.78rem; color: var(--text-muted); margin: 0; }
 .pin-detail .pd-desc { font-size: 0.88rem; margin: 0; }
 .pin-detail .pd-note { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
 .pin-detail .pd-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
@@ -493,6 +557,6 @@ button.btn.danger:hover { background: var(--accent-mark); color: #fff; }
   .svg-wrap { border: none; }
   .pad-group.marked .pad { stroke-width: 4; }
   .svg-wrap svg { min-width: 0; max-width: 100%; }
-  .svg-hint, .pin-detail .pd-actions { display: none; }
+  .svg-hint, .pin-detail .pd-actions, .meter-note .mn-calc { display: none; }
   .legend-chip { border-color: var(--border); break-inside: avoid; }
 }
