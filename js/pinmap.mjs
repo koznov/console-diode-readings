@@ -117,7 +117,11 @@ export async function createPinmap({ container, connector, board, store, onChang
     const ek = emphasisKind(ep.parsed);
     if (ek === 'ol') g.classList.add('ol');
     if (ek === 'low') g.classList.add('low');
-    if (valueEl) valueEl.textContent = ep.parsed.kind === 'ol' ? 'OL' : ep.parsed.raw;
+    if (valueEl) {
+      valueEl.textContent = ep.parsed.kind === 'ol' ? 'OL' : ep.parsed.raw;
+      // 36px pitch fits "0.79"; longer strings (0.809) must shrink or they collide
+      g.classList.toggle('long-value', valueEl.textContent.length > 4);
+    }
 
     g.tabIndex = 0;
     g.setAttribute('role', 'button');

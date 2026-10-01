@@ -288,6 +288,8 @@ button.btn:hover { border-color: var(--accent); }
 }
 .pad-group.ol .pad-value  { fill: var(--text-muted); font-style: italic; }
 .pad-group.low .pad-value { fill: var(--text-muted); }
+/* 3-decimal readings (0.809) are 5 chars; shrink so neighbours don't collide at 36px pitch */
+.pad-group.long-value .pad-value { font-size: 10.5px; letter-spacing: -0.03em; }
 
 /* meter-calibrated reading (second row) — only while a calibration is set */
 .pad-value-adj {
