@@ -1,0 +1,106 @@
+{
+  "id": "edm-010",
+  "consoleId": "ps5",
+  "revision": "EDM-010",
+  "confirmedOn": 1,
+  "notes": [
+    "PS5 Digital Edition (launch board, 2020). Readings from a board photo annotated by Matt Coleman, shared in a repair community; pins listed left to right as they sit on the board (19 → 1), i.e. with the connector removed.",
+    "Source lists pin 14 as NC (open) and the shields/ground pins as GND; stored here as OL and 0 to match the other boards. Three-decimal values kept as measured."
+  ],
+  "connectors": [
+    {
+      "id": "hdmi",
+      "type": "HDMI",
+      "label": "HDMI port",
+      "svgTemplate": "assets/connectors/hdmi.svg",
+      "pinCount": 19,
+      "measurement": {
+        "mode": "diode",
+        "probes": {
+          "red": "GND",
+          "black": "signal pin"
+        },
+        "unit": "V (drop)",
+        "pins": [
+          {
+            "num": 1,
+            "value": "0.809"
+          },
+          {
+            "num": 2,
+            "value": "0"
+          },
+          {
+            "num": 3,
+            "value": "0.809"
+          },
+          {
+            "num": 4,
+            "value": "0.809"
+          },
+          {
+            "num": 5,
+            "value": "0"
+          },
+          {
+            "num": 6,
+            "value": "0.809"
+          },
+          {
+            "num": 7,
+            "value": "0.809"
+          },
+          {
+            "num": 8,
+            "value": "0"
+          },
+          {
+            "num": 9,
+            "value": "0.809"
+          },
+          {
+            "num": 10,
+            "value": "0.809"
+          },
+          {
+            "num": 11,
+            "value": "0"
+          },
+          {
+            "num": 12,
+            "value": "0.809"
+          },
+          {
+            "num": 13,
+            "value": "0.68"
+          },
+          {
+            "num": 14,
+            "value": "OL"
+          },
+          {
+            "num": 15,
+            "value": "0.671"
+          },
+          {
+            "num": 16,
+            "value": "0.671"
+          },
+          {
+            "num": 17,
+            "value": "0"
+          },
+          {
+            "num": 18,
+            "value": "0.542"
+          },
+          {
+            "num": 19,
+            "value": "0.686"
+          }
+        ]
+      }
+    }
+  ],
+  "photos": []
+}

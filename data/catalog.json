@@ -1,7 +1,10 @@
 {
   "consoles": [
     { "id": "ps5", "brand": "Sony", "family": "PlayStation 5", "name": "PS5 Phat",
-      "boards": [{ "id": "cfi-1216a", "revision": "CFI-1216A", "file": "data/consoles/ps5-phat-cfi-1216a.json" }] },
+      "boards": [
+        { "id": "edm-010", "revision": "EDM-010", "file": "data/consoles/ps5-phat-edm-010.json" },
+        { "id": "cfi-1216a", "revision": "CFI-1216A", "file": "data/consoles/ps5-phat-cfi-1216a.json" }
+      ] },
 
     { "id": "ps4-phat", "brand": "Sony", "family": "PlayStation 4", "name": "PS4 Phat",
       "boards": [{ "id": "1004", "revision": "1004", "file": "data/consoles/ps4-phat-1004.json" }] },
