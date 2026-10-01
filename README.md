@@ -27,16 +27,20 @@ forward voltage drop in volts (or `OL` = open line).
 2. The HDMI footprint renders as it sits on the board with the connector
    removed: one row of 19 colour-coded pads, **pin 19 on the left, pin 1 on
    the right**, with every reading printed under its pad.
-3. **Hover** a pad to see which signal that pin carries.
+3. **Hover** a pad to see which signal that pin carries (schematic name,
+   e.g. `SCL`, plus the full line name).
 4. **Click / tap** a pad (or focus + Space/Enter) to select it — the panel
    below the connector shows the pin's function, its reading, and any notes.
    Press Esc or *Deselect* to clear.
 5. In that panel, **Mark damaged** flags the pin (red outline). Marks persist
    in your browser and survive reloads; *Clear marks* removes them all.
-6. Use the controls to filter pads by signal class, toggle pin numbers, switch
-   light/dark theme, or flip to the board/photo view.
-7. **Print** or **Export CSV** for an offline reference of the current board
-   (exports include your marked pins).
+6. The **Signals** legend is interactive: hover a signal to light up its
+   pins, click to pin it — the panel then lists that signal's pins and
+   readings. Click again, *Show all pins*, or Esc to release.
+7. Use the controls to toggle pin numbers, switch light/dark theme, or flip
+   to the board/photo view.
+8. **Print** or **Export CSV** for an offline reference of the current board
+   (exports include pin names and your marked pins).
 
 ## Contributing
 
