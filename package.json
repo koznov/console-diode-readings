@@ -1,0 +1,10 @@
+{
+  "name": "console-diode-readings",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive diode-mode readings reference for console HDMI ports.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/"
+  }
+}
