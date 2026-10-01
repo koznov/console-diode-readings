@@ -102,5 +102,12 @@
       }
     }
   ],
-  "photos": []
+  "photos": [
+    {
+      "src": "assets/photos/edm-010/hdmi-port.png",
+      "caption": "HDMI port, top view",
+      "size": [1120, 842],
+      "anchors": { "19": [338.1, 589.7], "1": [805.6, 589.2] }
+    }
+  ]
 }
