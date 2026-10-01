@@ -29,3 +29,33 @@ export function emphasisKind(parsed) {
   if (parsed.kind === 'zero') return 'low';
   return 'normal';
 }
+
+// ---- Meter calibration ------------------------------------------------------
+// Different multimeters read a few percent apart. The user measures ONE
+// known-good numeric pin on their board; the ratio to our reading rescales
+// every other numeric reading. OL and ground (~0) carry no scale information
+// and are never rescaled.
+
+export function calibrationFactor(ourParsed, yourRaw) {
+  if (ourParsed.kind !== 'numeric') {
+    throw new Error('reference pin must have a numeric reading');
+  }
+  const yours = parseValue(yourRaw); // throws on garbage
+  if (yours.kind !== 'numeric') {
+    throw new Error('your reading must be numeric (not OL or 0)');
+  }
+  return yours.volts / ourParsed.volts;
+}
+
+export function scaleReading(parsed, factor) {
+  if (parsed.kind !== 'numeric') return null;
+  const v = Math.round(parsed.volts * factor * 100) / 100;
+  return { kind: 'numeric', volts: v, raw: v.toFixed(2) };
+}
+
+export function formatOffset(factor) {
+  const pct = (factor - 1) * 100;
+  if (Math.abs(pct) < 0.05) return '±0 %';
+  const sign = pct > 0 ? '+' : '−';
+  return `${sign}${Math.abs(pct).toFixed(1)} %`;
+}

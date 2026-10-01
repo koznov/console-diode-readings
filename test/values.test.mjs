@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseValue, formatValue, emphasisKind } from '../js/values.mjs';
+import { parseValue, formatValue, emphasisKind, calibrationFactor, scaleReading, formatOffset } from '../js/values.mjs';
 
 test('parseValue recognizes OL (case-insensitive, trimmed)', () => {
   for (const r of ['OL', ' ol ', 'Ol']) {
@@ -41,4 +41,37 @@ test('garbage values throw (loud, not silent)', () => {
 test('negative or absurd numerics throw', () => {
   assert.throws(() => parseValue('-0.5'), /invalid reading/i);
   assert.throws(() => parseValue('999'), /out of plausible range/i);
+});
+
+// ---- Meter calibration: rescale our readings to the user's multimeter -----
+test('calibrationFactor is yours / ours for two numeric readings', () => {
+  assert.equal(calibrationFactor(parseValue('0.79'), '0.83'), 0.83 / 0.79);
+  assert.equal(calibrationFactor(parseValue('0.50'), ' 0.5 '), 1);
+});
+
+test('calibrationFactor refuses OL / zero / garbage on either side', () => {
+  assert.throws(() => calibrationFactor(parseValue('OL'), '0.8'), /numeric/i);
+  assert.throws(() => calibrationFactor(parseValue('0.79'), 'OL'), /numeric/i);
+  assert.throws(() => calibrationFactor(parseValue('0.79'), '0'), /numeric/i);
+  assert.throws(() => calibrationFactor(parseValue('0.79'), 'abc'), /invalid|numeric/i);
+});
+
+test('scaleReading rescales numeric readings to 2 decimals', () => {
+  const s = scaleReading(parseValue('0.79'), 1.05);
+  assert.equal(s.kind, 'numeric');
+  assert.equal(s.raw, '0.83');
+  assert.equal(s.volts, 0.83);
+  assert.equal(formatValue(s), '0.83 V');
+});
+
+test('scaleReading leaves OL and ground readings alone (returns null)', () => {
+  assert.equal(scaleReading(parseValue('OL'), 1.05), null);
+  assert.equal(scaleReading(parseValue('0'), 1.05), null);
+});
+
+test('formatOffset renders a signed percentage', () => {
+  assert.equal(formatOffset(1.051), '+5.1 %');
+  assert.equal(formatOffset(0.968), '−3.2 %');
+  assert.equal(formatOffset(1), '±0 %');
+  assert.equal(formatOffset(1.0003), '±0 %');
 });
