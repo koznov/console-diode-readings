@@ -5,7 +5,7 @@ export const HDMI_PIN_COUNT = 19;
 
 export const SIGNAL_CLASSES = {
   'gnd':           { displayName: 'Ground / Shield',  legendGroup: 'Power & Ground', cssVar: '--sig-gnd',
-                     description: 'Ground return / cable shield. Reads ~0 V in diode mode (direct short to ground).' },
+                     description: 'Ground return / cable shield. Connected directly to ground, so it reads ~0 V in diode mode — this is normal, not a fault.' },
   'power-5v':      { displayName: '+5V Power',        legendGroup: 'Power & Ground', cssVar: '--sig-power-5v',
                      description: 'Supplies +5 V to the sink for EDID/HPD. Usually behind a switch or fuse; OL here often means a blown fuse.' },
   'tmds-data-pos': { displayName: 'TMDS Data +',      legendGroup: 'TMDS Data',      cssVar: '--sig-tmds-data-pos',

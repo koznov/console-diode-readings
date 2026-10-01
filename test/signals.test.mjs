@@ -110,3 +110,8 @@ test('pinsForClass lists the canonical pins of a class in ascending order', () =
   assert.deepEqual(pinsForClass('hpd'), [19]);
   assert.deepEqual(pinsForClass('nope'), []);
 });
+
+test('ground description never calls a ground pin a "short" (reads as a fault to a technician)', () => {
+  assert.doesNotMatch(SIGNAL_CLASSES.gnd.description, /short/i);
+  assert.match(SIGNAL_CLASSES.gnd.description, /connected .*ground/i);
+});

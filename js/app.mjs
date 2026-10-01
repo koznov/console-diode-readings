@@ -216,17 +216,30 @@ function renderPinDetail(pin) {
   const sw = el('span', { class: 'swatch' });
   sw.style.background = `var(${SIGNAL_CLASSES[info.className].cssVar})`;
 
+  // Class chip behaves like its legend twin: hover lights up every pin of
+  // that signal, click pins the signal.
+  const classChip = el('button', {
+    class: 'pd-class pd-class-btn',
+    type: 'button',
+    title: `Highlight all ${info.classDisplayName} pins`,
+    onmouseenter: () => setLegendHover(info.className),
+    onmouseleave: () => setLegendHover(null),
+    onfocus: () => setLegendHover(info.className),
+    onblur: () => setLegendHover(null),
+    onclick: () => toggleSignalFilter(info.className),
+  }, [sw, info.classDisplayName, el('span', { class: 'chip-pins' }, pinsForClass(info.className).join(','))]);
+
   host.appendChild(el('div', { class: 'pd-head' }, [
     el('span', { class: 'pd-pin' }, `Pin ${pin}`),
     el('span', { class: 'pd-name pd-short' }, info.short),
-    // long name + class chip; each shown only when it adds to what's already there
+    // long name only when it adds to the short one
     info.name !== info.short ? el('span', { class: 'pd-class' }, info.name) : null,
-    el('span', { class: 'pd-class' }, [sw, info.classDisplayName !== info.name ? info.classDisplayName : null]),
+    classChip,
   ]));
 
   const valueBox = el('div', { class: 'pd-value' }, ep ? formatValue(ep.parsed) : '—');
   if (ep?.parsed.kind === 'ol') valueBox.appendChild(el('small', {}, 'open line'));
-  else if (ep?.parsed.kind === 'zero') valueBox.appendChild(el('small', {}, 'short to ground'));
+  else if (ep?.parsed.kind === 'zero') valueBox.appendChild(el('small', {}, 'connected to ground'));
   else valueBox.appendChild(el('small', {}, currentConnector.measurement.unit || 'V (drop)'));
   host.appendChild(valueBox);
 
