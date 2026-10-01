@@ -43,7 +43,10 @@ forward voltage drop in volts (or `OL` = open line).
    click to pin it — the panel then lists that signal's pins and readings.
    Click again, *Show all pins*, or Esc to release.
 7. Use the controls to toggle pin numbers, switch light/dark theme, or flip
-   to the board/photo view.
+   to the board/photo view. On a board whose photo carries pin positions
+   (e.g. EDM-010) that view shows the real connector with the same live pins:
+   hover, select, mark damaged and calibrate work exactly as on the schematic.
+   *Pads* zooms to the contact strip, *Whole photo* shows the full picture.
 8. **Print** or **Export CSV** for an offline reference of the current board
    (exports include pin names and your marked pins).
 

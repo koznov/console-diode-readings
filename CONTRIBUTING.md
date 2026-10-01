@@ -43,8 +43,34 @@ per-pin values. A maintainer will convert it to a data file.
 3. Run `npm test` — the seed-validation test loads every board and asserts 19
    pins with no warnings. It will catch typos in values or signal classes.
 4. Optionally add board photos under `assets/photos/<board-id>/` and list them
-   in the board's `photos` array.
+   in the board's `photos` array (see *Photos with live pins* below). Photos
+   are licensed like the data (CC BY-SA 4.0), so only add pictures you took
+   or have the right to share.
 5. Open the PR.
+
+## Photos with live pins
+
+A `photos` entry is either a plain path (`"assets/photos/x/top.jpg"`, shown as
+a picture) or an object that also makes the pins clickable on the photo:
+
+```jsonc
+{
+  "src": "assets/photos/my-board-id/hdmi-port.png",
+  "caption": "HDMI port, top view",
+  "size": [1120, 842],                                   // the picture's real width, height in pixels
+  "anchors": { "19": [338.1, 589.7], "1": [805.6, 589.2] }  // pin → [x, y] pixel of that contact's centre
+}
+```
+
+- Open the picture in any image viewer that shows pixel coordinates and note
+  the centre of **two contacts**, ideally the two ends of the row (pins 19
+  and 1) for the best accuracy. Coordinates start at the top-left corner.
+- The pin you name is the pin that sits there: if pin 1 is on the left of
+  your photo, put `"1"` on the left anchor. The viewer spaces the other 17
+  contacts evenly along the line through the two, so the row may be tilted
+  or the shot portrait. Shoot from above with the pad row in focus.
+- `npm test` checks the file exists and that `size` matches it. Bad anchors
+  never hide the picture: it is shown without pins, with a warning.
 
 ## Schema at a glance
 
