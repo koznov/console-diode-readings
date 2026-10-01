@@ -1,0 +1,13 @@
+{
+  "consoles": [
+    {
+      "id": "fakeco",
+      "brand": "Fake",
+      "family": "Fake Fam",
+      "name": "Fake One",
+      "boards": [
+        { "id": "rev-a", "revision": "Rev A", "file": "test/fixtures/full-board.json" }
+      ]
+    }
+  ]
+}
