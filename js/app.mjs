@@ -219,7 +219,7 @@ function markCountText(n) {
 // "Will it still work?" panel for a memory chip: re-judged from the marked
 // (damaged) balls every time a mark changes. HDMI has no such panel.
 const VERDICT_TEXT = {
-  none: ['Click the damaged balls on the map to mark them; click again to unmark.', ''],
+  none: ['', 'Click the damaged balls on the map to mark them; click again to unmark.'],
   ok: ['✓ Will work', 'Only redundant power/ground or unused balls are damaged.'],
   warn: ['⚠ Should work, with caveats', ''],
   fail: ['✕ Will NOT work', ''],
