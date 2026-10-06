@@ -47,10 +47,19 @@ export function calibrationFactor(ourParsed, yourRaw) {
   return yours.volts / ourParsed.volts;
 }
 
-export function scaleReading(parsed, factor) {
+// `decimals` defaults to 2 (HDMI pads have room for "0.83"); pass
+// keepDecimals(parsed) to keep as many places as the reading itself has, where
+// the differences that matter sit in the third or fourth decimal (memory chips).
+export function scaleReading(parsed, factor, decimals = 2) {
   if (parsed.kind !== 'numeric') return null;
-  const v = Math.round(parsed.volts * factor * 100) / 100;
-  return { kind: 'numeric', volts: v, raw: v.toFixed(2) };
+  const k = 10 ** decimals;
+  const v = Math.round(parsed.volts * factor * k) / k;
+  return { kind: 'numeric', volts: v, raw: v.toFixed(decimals) };
+}
+
+export function keepDecimals(parsed) {
+  const frac = /\.(\d+)$/.exec(String(parsed.raw));
+  return Math.max(2, frac ? frac[1].length : 0);
 }
 
 export function formatOffset(factor) {

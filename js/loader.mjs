@@ -1,5 +1,5 @@
-import { resolveSignalClass, HDMI_PIN_COUNT } from './signals.mjs';
 import { parseValue } from './values.mjs';
+import { kindOf, rawPinKey } from './kinds.mjs';
 import { padPositions } from './photo.mjs';
 
 const DEFAULT_FETCH =
@@ -52,48 +52,62 @@ export async function loadBoard(entry, fetchFn = DEFAULT_FETCH) {
   const b = await res.json();
 
   const warnings = [];
-  const connectors = (b.connectors || []).map(conn => {
+  const connectors = [];
+  for (const conn of b.connectors || []) {
+    let kind;
+    try {
+      kind = kindOf(conn);
+    } catch (e) {
+      warnings.push(`${entry.revision}/${conn.id}: ${e.message}; connector skipped`);
+      continue;
+    }
+    const where = `${entry.revision}/${conn.id}`;
+    const word = kind.pinWord.toLowerCase();
     const m = conn.measurement || {};
-    const enriched = (m.pins || []).map(pin => {
-      let signalClass;
-      try {
-        signalClass = resolveSignalClass(pin.num, pin.signalClass);
-        if (pin.signalClass != null && signalClass !== pin.signalClass) {
-          warnings.push(`pin ${pin.num}: unknown signalClass "${pin.signalClass}", fell back to "${signalClass}"`);
-        }
-      } catch (e) {
-        warnings.push(`pin ${pin.num}: ${e.message}`);
-        signalClass = 'gnd';
+    const enriched = [];
+    const seen = new Set();
+    for (const pin of m.pins || []) {
+      // `num` on a normalized pin is its key: the pin number on HDMI, the ball id on a chip
+      const key = rawPinKey(kind, pin);
+      if (key == null || !kind.hasKey(key)) {
+        warnings.push(`${where}: ${word} ${pin?.[kind.keyField] ?? '(none)'} does not exist on ${kind.isBga ? kind.package.name : 'this connector'}; skipped`);
+        continue;
+      }
+      if (seen.has(key)) {
+        warnings.push(`${where}: ${word} ${key} listed twice; the first reading is used`);
+        continue;
+      }
+      seen.add(key);
+      const signalClass = kind.resolveSignalClass(key, pin.signalClass);
+      if (pin.signalClass != null && signalClass !== pin.signalClass) {
+        warnings.push(`${word} ${key}: unknown signalClass "${pin.signalClass}", fell back to "${signalClass}"`);
       }
       let parsed;
       try {
         parsed = parseValue(pin.value);
       } catch (e) {
-        warnings.push(`pin ${pin.num}: ${e.message}; recorded raw="${pin.value}"`);
+        warnings.push(`${word} ${key}: ${e.message}; recorded raw="${pin.value}"`);
         parsed = { kind: 'ol', volts: null, raw: String(pin.value) };
       }
-      return { num: pin.num, signalClass, parsed, raw: pin.value, note: pin.note };
-    });
+      enriched.push({ num: key, signalClass, parsed, raw: pin.value, note: pin.note });
+    }
 
     // Missing-pin detection (non-fatal: render what we have, warn loudly)
-    const have = new Set(enriched.map(p => p.num));
-    const missing = [];
-    for (let p = 1; p <= (conn.pinCount || HDMI_PIN_COUNT); p++) {
-      if (!have.has(p)) missing.push(p);
-    }
+    const missing = kind.keys().filter(k => !seen.has(k));
     if (missing.length) {
-      warnings.push(`${entry.revision}/${conn.id}: missing pins ${missing.join(', ')}`);
+      warnings.push(`${where}: missing ${word}s ${missing.join(', ')}`);
     }
 
-    return {
+    connectors.push({
       id: conn.id,
       type: conn.type,
       label: conn.label,
+      package: conn.package ?? null,
       svgTemplate: conn.svgTemplate,
-      pinCount: conn.pinCount,
+      pinCount: kind.keys().length,
       measurement: { mode: m.mode, probes: m.probes, unit: m.unit, pins: enriched },
-    };
-  });
+    });
+  }
 
   return {
     id: b.id,
