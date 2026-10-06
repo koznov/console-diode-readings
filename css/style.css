@@ -384,6 +384,43 @@ button.btn:hover { border-color: var(--accent); }
 .hide-labels .bga .ball-name { display: inline; }
 .bga-surface .pad-caret { stroke: var(--surface); stroke-width: 1; }
 
+/* "Will it work?" verdict for a memory chip, judged from the marked balls */
+.damage-check {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+.damage-check[hidden] { display: none; }
+.damage-check.v-ok   { border-left-color: #16a34a; }
+.damage-check.v-warn { border-left-color: #d97706; }
+.damage-check.v-fail { border-left-color: var(--accent-mark); }
+.dc-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; }
+.dc-title { font-weight: 700; }
+.v-none .dc-verdict { color: var(--text-muted); }
+.v-ok .dc-verdict   { color: #16a34a; font-weight: 700; }
+.v-warn .dc-verdict { color: #d97706; font-weight: 700; }
+.v-fail .dc-verdict { color: var(--accent-mark); font-weight: 700; }
+.dc-sub, .dc-line { margin: 6px 0 0; color: var(--text-muted); }
+.dc-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; }
+.dc-label { color: var(--text-muted); margin-right: 2px; }
+.dc-ball {
+  font: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+.dc-critical .dc-ball { border-color: var(--accent-mark); color: var(--accent-mark); }
+.pd-role { margin: 6px 0 0; font-size: 0.88rem; font-weight: 600; }
+
 /* parts of one board (HDMI port, memory chip): tabs above the title */
 .conn-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
 .conn-tab {

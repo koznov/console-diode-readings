@@ -56,6 +56,14 @@ forward voltage drop in volts (or `OL` = open line).
    and reading, like a technician's sheet. Hover, select, mark damaged, the
    Signals list and calibration work the same as on HDMI; calibration keeps
    the chip's four decimals.
+   **Will it work?** Mark the balls whose pads are damaged and the panel
+   under the map gives a verdict, the way forterfix's damage checker does:
+   any damaged *critical* ball (DQ, CA, CKE, CK, the WCK pair in use, RESET,
+   ZQ, VREFC …) means the chip will not work; power and ground balls are
+   redundant and only fail when the whole rail is gone (with a warning past
+   half of it); JTAG and the balls JEDEC marks NC are not needed. Losing a
+   whole VPP pair is flagged as fatal for Samsung chips. The selected ball's
+   panel says which of the three it is.
 9. **Print** or **Export CSV** for an offline reference of the current board
    (exports include pin names and your marked pins).
 
