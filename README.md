@@ -56,8 +56,9 @@ forward voltage drop in volts (or `OL` = open line).
    and reading, like a technician's sheet. Hover, select, mark damaged, the
    Signals list and calibration work the same as on HDMI; calibration keeps
    the chip's four decimals.
-   **Will it work?** Mark the balls whose pads are damaged and the panel
-   under the map gives a verdict, the way forterfix's damage checker does:
+   **Will it work?** On the chip a click marks a ball damaged at once (click
+   again to unmark), as in forterfix's damage checker, and the panel above
+   the map, which stays in view while you scroll, gives the verdict:
    any damaged *critical* ball (DQ, CA, CKE, CK, the WCK pair in use, RESET,
    ZQ, VREFC …) means the chip will not work; power and ground balls are
    redundant and only fail when the whole rail is gone (with a warning past

@@ -115,6 +115,16 @@ export async function createPinmap({ container, connector, board, store, photo =
     refresh();
     onChange?.(scope, store.markedPins(scope).length);
   }
+  // Click / Enter / Space on a pad. On a chip, as in forterfix's damage checker,
+  // it flips the ball's damaged mark straight away and shows that ball in the
+  // panel (a second click unmarks it); on HDMI it selects / deselects the pin.
+  function activate(pin) {
+    if (!kind.isBga) { select(pin); return; }
+    if (!pinsById.has(pin)) return;
+    toggleMark(pin);
+    if (selectedPin !== pin) { selectedPin = pin; refresh(); }
+    onSelect?.(selectedPin);
+  }
 
   // ---- Per-pad setup -----------------------------------------------------
   function bindPad(g, pin) {
@@ -149,11 +159,11 @@ export async function createPinmap({ container, connector, board, store, photo =
       showTip(tip, r.left, r.bottom);
     });
     g.addEventListener('blur', hideTip);
-    g.addEventListener('click', () => select(pin));
+    g.addEventListener('click', () => activate(pin));
     g.addEventListener('keydown', (e) => {
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
-        select(pin);
+        activate(pin);
       } else if (e.key === 'Escape') {
         select(null);
       }
