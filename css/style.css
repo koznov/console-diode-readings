@@ -382,11 +382,21 @@ button.btn:hover { border-color: var(--accent); }
 /* "Labels" hides the row/column frame on a chip; ball names stay, they are the map */
 .hide-labels .grid-label { display: none; }
 .hide-labels .bga .ball-name { display: inline; }
+.bga .pad-group.marked .pad { stroke-width: 3.5; }
+.bga .pad-group.marked .pad-value { fill: var(--accent-mark); text-decoration: line-through; }
 .bga-surface .pad-caret { stroke: var(--surface); stroke-width: 1; }
 
 /* "Will it work?" verdict for a memory chip, judged from the marked balls */
 .damage-check {
-  margin-top: 12px;
+  /* above the chip map and pinned to the top while scrolling it, so the verdict
+     stays in view as balls are marked anywhere on the 18-row map */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  max-height: 40vh;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+  margin: 0 0 12px;
   padding: 10px 14px;
   border: 1px solid var(--border);
   border-left: 4px solid var(--border);
@@ -729,6 +739,7 @@ button.btn.danger:hover { background: var(--accent-mark); color: #fff; }
   .svg-wrap { border: none; }
   .pad-group.marked .pad { stroke-width: 4; }
   .svg-wrap svg, .svg-wrap .bga { min-width: 0; max-width: 100%; }
+  .damage-check { position: static; max-height: none; box-shadow: none; }
   .conn-tabs, .svg-hint, .pin-detail .pd-actions, .meter-note .mn-calc, .photo-bar .pb-frame { display: none; }
   .legend-chip { border-color: var(--border); break-inside: avoid; }
 }

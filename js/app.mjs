@@ -219,7 +219,7 @@ function markCountText(n) {
 // "Will it still work?" panel for a memory chip: re-judged from the marked
 // (damaged) balls every time a mark changes. HDMI has no such panel.
 const VERDICT_TEXT = {
-  none: ['Mark damaged balls to check whether the chip will still work.', ''],
+  none: ['Click the damaged balls on the map to mark them; click again to unmark.', ''],
   ok: ['✓ Will work', 'Only redundant power/ground or unused balls are damaged.'],
   warn: ['⚠ Should work, with caveats', ''],
   fail: ['✕ Will NOT work', ''],
@@ -354,7 +354,9 @@ function renderPinDetail(pin) {
     if (cls !== 'all') { renderSignalDetail(host, cls); return; }
     host.className = 'pin-detail empty';
     const word = currentKind.pinWord.toLowerCase();
-    host.appendChild(el('div', {}, `Click or tap a pad to see that ${word}\u2019s reading and notes. In the Signals list below, hover a row to light up its ${word}s, click to pin it.`));
+    host.appendChild(el('div', {}, currentKind.isBga
+      ? 'Click a ball to mark it damaged (click again to unmark); the verdict above the map updates at once and this panel shows the ball. Hover a ball for its reading.'
+      : `Click or tap a pad to see that ${word}\u2019s reading and notes. In the Signals list below, hover a row to light up its ${word}s, click to pin it.`));
     return;
   }
 
@@ -533,6 +535,10 @@ async function showConnector(cons, board, index) {
     `${pkgName} · ${board.revision} · diode mode (red probe on GND)${currentKind.isBga ? ' · top view' : ''}`));
   renderMeterNote(canvas, currentConnector);
 
+  // "Will it work?" sits above the chip map so the verdict is in view while marking
+  const damageHost = el('div', { id: 'damage-check', class: 'damage-check', hidden: '' });
+  canvas.appendChild(damageHost);
+
   // Connector SVG mount + legend
   const photoBar = el('div', { class: 'photo-bar', hidden: '' });
   canvas.appendChild(photoBar);
@@ -542,8 +548,6 @@ async function showConnector(cons, board, index) {
   canvas.appendChild(svgHint);
   const detailHost = el('div', { id: 'pin-detail', class: 'pin-detail empty' });
   canvas.appendChild(detailHost);
-  const damageHost = el('div', { id: 'damage-check', class: 'damage-check', hidden: '' });
-  canvas.appendChild(damageHost);
   const legendHost = el('div', {});
   renderLegend(legendHost);
   canvas.appendChild(legendHost);
