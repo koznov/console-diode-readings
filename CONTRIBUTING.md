@@ -48,6 +48,34 @@ per-pin values. A maintainer will convert it to a data file.
    or have the right to share.
 5. Open the PR.
 
+## Memory chips (GDDR6)
+
+A board can also carry readings of a BGA memory chip, as a second entry in
+`connectors`. Measure the chip's **pads on the board with the chip removed**,
+same diode mode and probe orientation, and key each reading by **ball**:
+
+```jsonc
+{
+  "id": "gddr6",
+  "type": "GDDR6",
+  "package": "gddr6",          // ball map from js/bga.mjs (180-ball GDDR6, top view)
+  "label": "GDDR6 RAM",
+  "measurement": {
+    "mode": "diode",
+    "probes": { "red": "GND", "black": "ball" },
+    "unit": "V (drop)",
+    "pins": [ { "ball": "A1", "value": "0.0061" }, { "ball": "A2", "value": "0.0034" } /* … all 180 */ ]
+  }
+}
+```
+
+- Keep every decimal your meter shows (`"0.2579"`): on a chip the
+  differences that matter are in the third and fourth place.
+- Ball names and colours come from the package, not from the file. Say in
+  the board's `notes` which chip you measured (e.g. its U-number).
+- `npm test` checks every ball exists, none is listed twice and none is
+  missing. The admin panel's **+ Add GDDR6 chip** button creates the entry.
+
 ## Photos with live pins
 
 A `photos` entry is either a plain path (`"assets/photos/x/top.jpg"`, shown as

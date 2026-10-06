@@ -3,7 +3,9 @@
   "consoleId": "ps5",
   "revision": "CFI-1216A",
   "confirmedOn": 1,
-  "notes": [],
+  "notes": [
+    "GDDR6 RAM: readings are from one of the eight chips; its position (U-number) was not recorded. All eight share the same layout and should read alike."
+  ],
   "connectors": [
     {
       "id": "hdmi",
@@ -94,6 +96,748 @@
           {
             "num": 19,
             "value": "0.53"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gddr6",
+      "type": "GDDR6",
+      "package": "gddr6",
+      "label": "GDDR6 RAM",
+      "measurement": {
+        "mode": "diode",
+        "probes": {
+          "red": "GND",
+          "black": "ball"
+        },
+        "unit": "V (drop)",
+        "pins": [
+          {
+            "ball": "A1",
+            "value": "0.0061"
+          },
+          {
+            "ball": "A2",
+            "value": "0.0034"
+          },
+          {
+            "ball": "A3",
+            "value": "0.2579"
+          },
+          {
+            "ball": "A4",
+            "value": "0.0003"
+          },
+          {
+            "ball": "A5",
+            "value": "0.1494"
+          },
+          {
+            "ball": "A10",
+            "value": "0.1496"
+          },
+          {
+            "ball": "A11",
+            "value": "0.0001"
+          },
+          {
+            "ball": "A12",
+            "value": "0.2592"
+          },
+          {
+            "ball": "A13",
+            "value": "0.0001"
+          },
+          {
+            "ball": "A14",
+            "value": "0.0059"
+          },
+          {
+            "ball": "B1",
+            "value": "0.0008"
+          },
+          {
+            "ball": "B2",
+            "value": "0.2574"
+          },
+          {
+            "ball": "B3",
+            "value": "0.2566"
+          },
+          {
+            "ball": "B4",
+            "value": "0.2577"
+          },
+          {
+            "ball": "B5",
+            "value": "0.0057"
+          },
+          {
+            "ball": "B10",
+            "value": "0.0061"
+          },
+          {
+            "ball": "B11",
+            "value": "0.2588"
+          },
+          {
+            "ball": "B12",
+            "value": "0.2574"
+          },
+          {
+            "ball": "B13",
+            "value": "0.2592"
+          },
+          {
+            "ball": "B14",
+            "value": "0.0001"
+          },
+          {
+            "ball": "C1",
+            "value": "0.0066"
+          },
+          {
+            "ball": "C2",
+            "value": "0.2566"
+          },
+          {
+            "ball": "C3",
+            "value": "0.0002"
+          },
+          {
+            "ball": "C4",
+            "value": "0.0061"
+          },
+          {
+            "ball": "C5",
+            "value": "0.0002"
+          },
+          {
+            "ball": "C10",
+            "value": "0.0002"
+          },
+          {
+            "ball": "C11",
+            "value": "0.0061"
+          },
+          {
+            "ball": "C12",
+            "value": "0.0001"
+          },
+          {
+            "ball": "C13",
+            "value": "0.2576"
+          },
+          {
+            "ball": "C14",
+            "value": "0.0062"
+          },
+          {
+            "ball": "D1",
+            "value": "0.0008"
+          },
+          {
+            "ball": "D2",
+            "value": "0.2569"
+          },
+          {
+            "ball": "D3",
+            "value": "0.0002"
+          },
+          {
+            "ball": "D4",
+            "value": "0.2577"
+          },
+          {
+            "ball": "D5",
+            "value": "0.2567"
+          },
+          {
+            "ball": "D10",
+            "value": "0.2574",
+            "note": "Marked NC on this board in the source sheet."
+          },
+          {
+            "ball": "D11",
+            "value": "0.2592",
+            "note": "Marked NC on this board in the source sheet."
+          },
+          {
+            "ball": "D12",
+            "value": "0.0001"
+          },
+          {
+            "ball": "D13",
+            "value": "0.2574"
+          },
+          {
+            "ball": "D14",
+            "value": "0.0001"
+          },
+          {
+            "ball": "E1",
+            "value": "0.0034"
+          },
+          {
+            "ball": "E2",
+            "value": "0.2566"
+          },
+          {
+            "ball": "E3",
+            "value": "0.2572"
+          },
+          {
+            "ball": "E4",
+            "value": "0.0001"
+          },
+          {
+            "ball": "E5",
+            "value": "0.0057"
+          },
+          {
+            "ball": "E10",
+            "value": "0.0061"
+          },
+          {
+            "ball": "E11",
+            "value": "0.0001"
+          },
+          {
+            "ball": "E12",
+            "value": "0.2583"
+          },
+          {
+            "ball": "E13",
+            "value": "0.2583"
+          },
+          {
+            "ball": "E14",
+            "value": "0.0062"
+          },
+          {
+            "ball": "F1",
+            "value": "0.0004"
+          },
+          {
+            "ball": "F2",
+            "value": "0.2549"
+          },
+          {
+            "ball": "F3",
+            "value": "0.0002"
+          },
+          {
+            "ball": "F4",
+            "value": "0.0062"
+          },
+          {
+            "ball": "F5",
+            "value": "OL"
+          },
+          {
+            "ball": "F10",
+            "value": "OL"
+          },
+          {
+            "ball": "F11",
+            "value": "0.006"
+          },
+          {
+            "ball": "F12",
+            "value": "0.0001"
+          },
+          {
+            "ball": "F13",
+            "value": "0.2592"
+          },
+          {
+            "ball": "F14",
+            "value": "0.0001"
+          },
+          {
+            "ball": "G1",
+            "value": "0.0005"
+          },
+          {
+            "ball": "G2",
+            "value": "0.257"
+          },
+          {
+            "ball": "G3",
+            "value": "0.0002"
+          },
+          {
+            "ball": "G4",
+            "value": "0.2605"
+          },
+          {
+            "ball": "G5",
+            "value": "OL",
+            "note": "Marked NC on this board in the source sheet."
+          },
+          {
+            "ball": "G10",
+            "value": "0.2626"
+          },
+          {
+            "ball": "G11",
+            "value": "0.2583"
+          },
+          {
+            "ball": "G12",
+            "value": "0.0001"
+          },
+          {
+            "ball": "G13",
+            "value": "0.2591"
+          },
+          {
+            "ball": "G14",
+            "value": "0.0001"
+          },
+          {
+            "ball": "H1",
+            "value": "0.0063"
+          },
+          {
+            "ball": "H2",
+            "value": "0.006"
+          },
+          {
+            "ball": "H3",
+            "value": "0.2609"
+          },
+          {
+            "ball": "H4",
+            "value": "0.0003"
+          },
+          {
+            "ball": "H5",
+            "value": "0.2594"
+          },
+          {
+            "ball": "H10",
+            "value": "0.2611"
+          },
+          {
+            "ball": "H11",
+            "value": "0.0001"
+          },
+          {
+            "ball": "H12",
+            "value": "0.26"
+          },
+          {
+            "ball": "H13",
+            "value": "0.0062"
+          },
+          {
+            "ball": "H14",
+            "value": "0.0061"
+          },
+          {
+            "ball": "J1",
+            "value": "0.2568"
+          },
+          {
+            "ball": "J2",
+            "value": "0.0057"
+          },
+          {
+            "ball": "J3",
+            "value": "0.2621"
+          },
+          {
+            "ball": "J4",
+            "value": "0.2617"
+          },
+          {
+            "ball": "J5",
+            "value": "0.2609"
+          },
+          {
+            "ball": "J10",
+            "value": "0.2626"
+          },
+          {
+            "ball": "J11",
+            "value": "0.26"
+          },
+          {
+            "ball": "J12",
+            "value": "0.2763"
+          },
+          {
+            "ball": "J13",
+            "value": "0.0063"
+          },
+          {
+            "ball": "J14",
+            "value": "0.0429"
+          },
+          {
+            "ball": "K1",
+            "value": "0.0007"
+          },
+          {
+            "ball": "K2",
+            "value": "0.0062"
+          },
+          {
+            "ball": "K3",
+            "value": "0.26"
+          },
+          {
+            "ball": "K4",
+            "value": "0.2596"
+          },
+          {
+            "ball": "K5",
+            "value": "0.2634"
+          },
+          {
+            "ball": "K10",
+            "value": "0.2608"
+          },
+          {
+            "ball": "K11",
+            "value": "0.2608"
+          },
+          {
+            "ball": "K12",
+            "value": "0.2626"
+          },
+          {
+            "ball": "K13",
+            "value": "0.006"
+          },
+          {
+            "ball": "K14",
+            "value": "0.0424"
+          },
+          {
+            "ball": "L1",
+            "value": "0.0062"
+          },
+          {
+            "ball": "L2",
+            "value": "0.0062"
+          },
+          {
+            "ball": "L3",
+            "value": "0.2604"
+          },
+          {
+            "ball": "L4",
+            "value": "0.0004"
+          },
+          {
+            "ball": "L5",
+            "value": "0.2604"
+          },
+          {
+            "ball": "L10",
+            "value": "0.262"
+          },
+          {
+            "ball": "L11",
+            "value": "0.0001"
+          },
+          {
+            "ball": "L12",
+            "value": "0.2604"
+          },
+          {
+            "ball": "L13",
+            "value": "0.0062"
+          },
+          {
+            "ball": "L14",
+            "value": "0.0061"
+          },
+          {
+            "ball": "M1",
+            "value": "0.0006"
+          },
+          {
+            "ball": "M2",
+            "value": "0.2573"
+          },
+          {
+            "ball": "M3",
+            "value": "0.0004"
+          },
+          {
+            "ball": "M4",
+            "value": "0.2591"
+          },
+          {
+            "ball": "M5",
+            "value": "OL",
+            "note": "Marked NC on this board in the source sheet."
+          },
+          {
+            "ball": "M10",
+            "value": "0.2591"
+          },
+          {
+            "ball": "M11",
+            "value": "0.2614"
+          },
+          {
+            "ball": "M12",
+            "value": "0.0003"
+          },
+          {
+            "ball": "M13",
+            "value": "0.2592"
+          },
+          {
+            "ball": "M14",
+            "value": "0.0001"
+          },
+          {
+            "ball": "N1",
+            "value": "0.0002"
+          },
+          {
+            "ball": "N2",
+            "value": "0.259"
+          },
+          {
+            "ball": "N3",
+            "value": "0.0002"
+          },
+          {
+            "ball": "N4",
+            "value": "0.0062"
+          },
+          {
+            "ball": "N5",
+            "value": "OL"
+          },
+          {
+            "ball": "N10",
+            "value": "OL"
+          },
+          {
+            "ball": "N11",
+            "value": "0.0062"
+          },
+          {
+            "ball": "N12",
+            "value": "0.0002"
+          },
+          {
+            "ball": "N13",
+            "value": "0.256"
+          },
+          {
+            "ball": "N14",
+            "value": "0.0001"
+          },
+          {
+            "ball": "P1",
+            "value": "0.0062"
+          },
+          {
+            "ball": "P2",
+            "value": "0.2578"
+          },
+          {
+            "ball": "P3",
+            "value": "0.257"
+          },
+          {
+            "ball": "P4",
+            "value": "0.0001"
+          },
+          {
+            "ball": "P5",
+            "value": "0.0062"
+          },
+          {
+            "ball": "P10",
+            "value": "0.006"
+          },
+          {
+            "ball": "P11",
+            "value": "0.0001"
+          },
+          {
+            "ball": "P12",
+            "value": "0.2583"
+          },
+          {
+            "ball": "P13",
+            "value": "0.2583"
+          },
+          {
+            "ball": "P14",
+            "value": "0.0061"
+          },
+          {
+            "ball": "R1",
+            "value": "0.0002"
+          },
+          {
+            "ball": "R2",
+            "value": "0.2549"
+          },
+          {
+            "ball": "R3",
+            "value": "0.0002"
+          },
+          {
+            "ball": "R4",
+            "value": "0.26",
+            "note": "Marked NC on this board in the source sheet."
+          },
+          {
+            "ball": "R5",
+            "value": "0.2577",
+            "note": "Marked NC on this board in the source sheet."
+          },
+          {
+            "ball": "R10",
+            "value": "0.2575"
+          },
+          {
+            "ball": "R11",
+            "value": "0.2566"
+          },
+          {
+            "ball": "R12",
+            "value": "0.0001"
+          },
+          {
+            "ball": "R13",
+            "value": "0.2592"
+          },
+          {
+            "ball": "R14",
+            "value": "0.0001"
+          },
+          {
+            "ball": "T1",
+            "value": "0.0066"
+          },
+          {
+            "ball": "T2",
+            "value": "0.2561"
+          },
+          {
+            "ball": "T3",
+            "value": "0.0017"
+          },
+          {
+            "ball": "T4",
+            "value": "0.0062"
+          },
+          {
+            "ball": "T5",
+            "value": "0.0001"
+          },
+          {
+            "ball": "T10",
+            "value": "0.0001"
+          },
+          {
+            "ball": "T11",
+            "value": "0.006"
+          },
+          {
+            "ball": "T12",
+            "value": "0.0001"
+          },
+          {
+            "ball": "T13",
+            "value": "0.2588"
+          },
+          {
+            "ball": "T14",
+            "value": "0.0059"
+          },
+          {
+            "ball": "U1",
+            "value": "0.0003"
+          },
+          {
+            "ball": "U2",
+            "value": "0.2584"
+          },
+          {
+            "ball": "U3",
+            "value": "0.258"
+          },
+          {
+            "ball": "U4",
+            "value": "0.2584"
+          },
+          {
+            "ball": "U5",
+            "value": "0.006"
+          },
+          {
+            "ball": "U10",
+            "value": "0.006"
+          },
+          {
+            "ball": "U11",
+            "value": "0.2549"
+          },
+          {
+            "ball": "U12",
+            "value": "0.26"
+          },
+          {
+            "ball": "U13",
+            "value": "0.26"
+          },
+          {
+            "ball": "U14",
+            "value": "0.0002"
+          },
+          {
+            "ball": "V1",
+            "value": "0.0062"
+          },
+          {
+            "ball": "V2",
+            "value": "0.0004"
+          },
+          {
+            "ball": "V3",
+            "value": "0.2591"
+          },
+          {
+            "ball": "V4",
+            "value": "0.0002"
+          },
+          {
+            "ball": "V5",
+            "value": "0.1496"
+          },
+          {
+            "ball": "V10",
+            "value": "0.1495"
+          },
+          {
+            "ball": "V11",
+            "value": "0.0002"
+          },
+          {
+            "ball": "V12",
+            "value": "0.2576"
+          },
+          {
+            "ball": "V13",
+            "value": "0.0001"
+          },
+          {
+            "ball": "V14",
+            "value": "0.0059"
           }
         ]
       }
