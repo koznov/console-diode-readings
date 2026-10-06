@@ -11,7 +11,7 @@
 // hover back into the legend. setCalibration(factor|null) writes each
 // numeric reading rescaled to the user's meter into the .pad-value-adj slot.
 
-import { pinInfo } from './signals.mjs';
+import { kindOf } from './kinds.mjs';
 import { formatValue, emphasisKind, scaleReading } from './values.mjs';
 import { photoSvgMarkup, photoViewBox } from './photo.mjs';
 import { clear } from './ui.mjs';
@@ -46,8 +46,8 @@ function escapeHtml(s) {
  * @param {Object} [opts.photo]  a board photo that carries pin anchors (from the loader): the pads are
  *                               drawn over this picture instead of the schematic template
  * @param {(scope:string,count:number)=>void} [opts.onChange] called after a mark toggles
- * @param {(pin:number|null)=>void}          [opts.onSelect] called when the selected pin changes
- * @param {(pin:number|null)=>void}          [opts.onHover]  called on pad mouseenter / mouseleave
+ * @param {(pin:number|string|null)=>void}   [opts.onSelect] called when the selected pin changes
+ * @param {(pin:number|string|null)=>void}   [opts.onHover]  called on pad mouseenter / mouseleave
  */
 export async function createPinmap({ container, connector, board, store, photo = null, onChange, onSelect, onHover }) {
   const scope = `${board.id}:${connector.id}`;
@@ -57,21 +57,26 @@ export async function createPinmap({ container, connector, board, store, photo =
   let calibration = null;     // numeric factor (yours / ours) or null
   let tipEl = null;
 
-  const svgRoot = photo ? parseSvg(photoSvgMarkup(photo)) : await loadSvg(connector.svgTemplate);
+  const kind = kindOf(connector);
+  const svgRoot = photo ? parseSvg(photoSvgMarkup(photo))
+    : kind.svgMarkup ? parseSvg(kind.svgMarkup())
+    : await loadSvg(connector.svgTemplate);
   clear(container);
   container.appendChild(document.importNode(svgRoot, true));
   container.classList.toggle('photo-surface', photo != null);
+  container.classList.toggle('bga-surface', kind.isBga);
   container.classList.remove('photo-full');
 
   const groups = [...container.querySelectorAll('.pad-group')];
-  const groupByPin = new Map(groups.map(g => [Number(g.dataset.pin), g]));
+  const keyOf = (g) => kind.parseKey(g.dataset.pin); // pin number, or ball id on a chip
+  const groupByPin = new Map(groups.map(g => [keyOf(g), g]));
   const pinsById = new Map(connector.measurement.pins.map(p => [p.num, p]));
 
   // ---- Tooltip (hover / focus only) --------------------------------------
   function tooltipHTML(info, parsed) {
-    // "Pin 15 · SCL · SCL (DDC)" — long name only when it adds to the short one.
+    // "Pin 15 · SCL · SCL (DDC)" / "Ball B3 · DQ2_A · Data, channel A" — long name only when it adds to the short one.
     const long = info.name !== info.short ? ` &middot; <span class="tt-class">${escapeHtml(info.name)}</span>` : '';
-    return `<b>Pin ${info.pin}</b> &middot; <b>${escapeHtml(info.short)}</b>${long}`
+    return `<b>${kind.pinWord} ${escapeHtml(info.pin)}</b> &middot; <b>${escapeHtml(info.short)}</b>${long}`
       + `<br><span class="tt-val">${escapeHtml(formatValue(parsed))}</span>`;
   }
   function showTip(html, clientX, clientY) {
@@ -114,7 +119,7 @@ export async function createPinmap({ container, connector, board, store, photo =
   // ---- Per-pad setup -----------------------------------------------------
   function bindPad(g, pin) {
     const ep = pinsById.get(pin);
-    const info = pinInfo(pin, ep?.signalClass);
+    const info = kind.pinInfo(pin, ep?.signalClass);
     g.dataset.class = info.className;
     const valueEl = g.querySelector('.pad-value');
     if (!ep) {
@@ -127,13 +132,13 @@ export async function createPinmap({ container, connector, board, store, photo =
     if (ek === 'low') g.classList.add('low');
     if (valueEl) {
       valueEl.textContent = ep.parsed.kind === 'ol' ? 'OL' : ep.parsed.raw;
-      // 36px pitch fits "0.79"; longer strings (0.809) must shrink or they collide
-      g.classList.toggle('long-value', valueEl.textContent.length > 4);
+      // a reading wider than the pad pitch must shrink or it collides with its neighbours
+      g.classList.toggle('long-value', kind.longValue(valueEl.textContent));
     }
 
     g.tabIndex = 0;
     g.setAttribute('role', 'button');
-    g.setAttribute('aria-label', `Pin ${pin}, ${info.short}, ${info.name}, ${formatValue(ep.parsed)}`);
+    g.setAttribute('aria-label', `${kind.pinWord} ${pin}, ${info.short}, ${info.name}, ${formatValue(ep.parsed)}`);
 
     const tip = tooltipHTML(info, ep.parsed);
     g.addEventListener('mouseenter', (e) => { showTip(tip, e.clientX, e.clientY); onHover?.(pin); });
@@ -155,13 +160,13 @@ export async function createPinmap({ container, connector, board, store, photo =
     });
   }
 
-  groups.forEach(g => bindPad(g, Number(g.dataset.pin)));
+  groups.forEach(g => bindPad(g, keyOf(g)));
 
   function refresh() {
     const marked = new Set(store.markedPins(scope));
     const focusCls = highlight ?? (activeFilter !== 'all' ? activeFilter : null);
     for (const g of groups) {
-      const pin = Number(g.dataset.pin);
+      const pin = keyOf(g);
       g.classList.toggle('marked', marked.has(pin));
       g.classList.toggle('selected', pin === selectedPin);
       g.setAttribute('aria-pressed', pin === selectedPin ? 'true' : 'false');
@@ -176,8 +181,8 @@ export async function createPinmap({ container, connector, board, store, photo =
     for (const g of groups) {
       const slot = g.querySelector('.pad-value-adj');
       if (!slot) continue;
-      const ep = pinsById.get(Number(g.dataset.pin));
-      const scaled = (calibration != null && ep) ? scaleReading(ep.parsed, calibration) : null;
+      const ep = pinsById.get(keyOf(g));
+      const scaled = (calibration != null && ep) ? scaleReading(ep.parsed, calibration, kind.calDecimals(ep.parsed)) : null;
       slot.textContent = scaled ? scaled.raw : '';
     }
     container.classList.toggle('calibrated', calibration != null);
@@ -204,7 +209,7 @@ export async function createPinmap({ container, connector, board, store, photo =
     destroy() {
       hideTip();
       clear(container);
-      container.classList.remove('photo-surface', 'photo-full');
+      container.classList.remove('photo-surface', 'photo-full', 'bga-surface');
     },
   };
 }

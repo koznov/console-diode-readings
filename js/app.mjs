@@ -1,9 +1,11 @@
 // Entry/bootstrap: wires sidebar nav, canvas, controls, theme, views, export.
+// Everything that depends on what a connector is (HDMI port or BGA chip) goes
+// through its kind (js/kinds.mjs), never through signals.mjs directly.
 
 import { loadCatalog, loadBoard } from './loader.mjs';
 import { Store } from './store.mjs';
 import { createPinmap } from './pinmap.mjs';
-import { SIGNAL_CLASSES, LEGEND_GROUPS, pinInfo, pinsForClass } from './signals.mjs';
+import { kindOf } from './kinds.mjs';
 import { formatValue, calibrationFactor, scaleReading, formatOffset } from './values.mjs';
 import { el, clear } from './ui.mjs';
 
@@ -11,8 +13,9 @@ const store = new Store();
 let currentPinmap = null;
 let currentBoard = null;
 let currentConnector = null;
+let currentKind = kindOf(null);
 let labelsVisible = store.get('labels', 'true') !== 'false';
-let calibration = null; // { factor, refPin, yours } — in-memory only, per loaded board
+let calibration = null; // { factor, refPin, yours } — in-memory only, per shown connector
 
 // ---- Theme -------------------------------------------------------------
 function applyTheme(theme) {
@@ -34,9 +37,10 @@ function csvEscape(v) {
 function exportCsv(board, connector) {
   const scope = `${board.id}:${connector.id}`;
   const marked = new Set(store.markedPins(scope));
-  const rows = [['pin', 'name', 'signal', 'class', 'value', 'marked']];
+  const kind = kindOf(connector);
+  const rows = [[kind.pinWord.toLowerCase(), 'name', 'signal', 'class', 'value', 'marked']];
   for (const p of connector.measurement.pins) {
-    const info = pinInfo(p.num, p.signalClass);
+    const info = kind.pinInfo(p.num, p.signalClass);
     rows.push([
       p.num,
       info.short,
@@ -80,8 +84,16 @@ function renderNav(cat, onSelect) {
 
 // Legend is a list of signals — swatch, name, pins and description all
 // visible at once — and doubles as the signal filter: hover a row → its
-// pins light up, click → pin that signal. Rows follow LEGEND_GROUPS order;
+// pins light up, click → pin that signal. Rows follow the kind's legend group order;
 // the group captions are not shown.
+// Pins of a class as a short label: every pin on HDMI, a count on a chip
+// (a chip has dozens of VSS balls).
+function classPinsLabel(pins) {
+  const word = currentKind.pinWord.toLowerCase();
+  if (pins.length > 8) return `${pins.length} ${word}s`;
+  return `${word}${pins.length === 1 ? '' : 's'} ${pins.join(', ')}`;
+}
+
 function renderLegend(host) {
   clear(host);
   host.className = 'legend';
@@ -89,12 +101,12 @@ function renderLegend(host) {
     el('span', { class: 'legend-title' }, 'Signals'),
   ]));
   const list = el('div', { class: 'legend-list', role: 'group', 'aria-label': 'Signal classes' });
-  for (const grp of LEGEND_GROUPS) {
+  for (const grp of currentKind.legendGroups) {
     for (const cls of grp.classes) {
-      const meta = SIGNAL_CLASSES[cls];
+      const meta = currentKind.signalClasses[cls];
       const sw = el('span', { class: 'swatch' });
       sw.style.background = `var(${meta.cssVar})`;
-      const pins = pinsForClass(cls);
+      const pins = currentKind.pinsForClass(cls);
       const row = el('button', {
         class: 'legend-chip',
         type: 'button',
@@ -109,7 +121,7 @@ function renderLegend(host) {
         el('span', { class: 'chip-body' }, [
           el('span', { class: 'chip-head' }, [
             el('span', { class: 'chip-name' }, meta.displayName),
-            el('span', { class: 'chip-pins' }, `pin${pins.length === 1 ? '' : 's'} ${pins.join(', ')}`),
+            el('span', { class: 'chip-pins' }, classPinsLabel(pins)),
           ]),
           el('span', { class: 'chip-desc' }, meta.description),
         ]),
@@ -137,21 +149,24 @@ function toggleSignalFilter(cls) {
   currentPinmap.setFilter(next);
   if (next !== 'all') {
     currentPinmap.select(null); // signal view replaces pin view
-    scrollPadsIntoView(pinsForClass(next));
+    scrollPadsIntoView(currentKind.pinsForClass(next));
   }
   syncLegend();
   renderPinDetail(currentPinmap.selectedPin);
 }
 
-// On narrow screens the 19-pad row scrolls inside .svg-wrap; bring the
+// On narrow screens the pad row (or chip grid) scrolls inside .svg-wrap; bring the
 // first highlighted pad into view so a pinned signal is never off-screen.
 function scrollPadsIntoView(pins) {
   const wrap = document.querySelector('.svg-wrap');
   const first = pins.length ? document.querySelector(`.pad-group[data-pin="${pins[0]}"]`) : null;
-  if (!wrap || !first || wrap.scrollWidth <= wrap.clientWidth) return;
-  const w = wrap.getBoundingClientRect();
-  const r = first.getBoundingClientRect();
-  wrap.scrollTo({ left: wrap.scrollLeft + (r.left - w.left) - (w.width - r.width) / 2, behavior: 'smooth' });
+  if (!wrap || !first) return;
+  if (wrap.scrollWidth > wrap.clientWidth) {
+    const w = wrap.getBoundingClientRect();
+    const r = first.getBoundingClientRect();
+    wrap.scrollTo({ left: wrap.scrollLeft + (r.left - w.left) - (w.width - r.width) / 2, behavior: 'smooth' });
+  }
+  if (currentKind.isBga) first.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 function syncLegend() {
@@ -195,11 +210,15 @@ function renderUtil(host, board, connector) {
   host.appendChild(el('span', { id: 'mark-counter', class: 'control-group' }, 'No pins marked'));
 }
 
+function markCountText(n) {
+  const word = currentKind.pinWord.toLowerCase();
+  return n === 0 ? `No ${word}s marked` : `${n} ${word}${n === 1 ? '' : 's'} marked`;
+}
+
 function updateMarkerCounter(board, connector) {
   const span = document.getElementById('mark-counter');
   if (!span) return;
-  const n = store.markedPins(`${board.id}:${connector.id}`).length;
-  span.textContent = n === 0 ? 'No pins marked' : `${n} pin${n === 1 ? '' : 's'} marked`;
+  span.textContent = markCountText(store.markedPins(`${board.id}:${connector.id}`).length);
 }
 
 // Meter-variance banner with the calibration calculator. The user types
@@ -207,36 +226,37 @@ function updateMarkerCounter(board, connector) {
 // reading is rescaled by that ratio and shown as a second row under the pads.
 function renderMeterNote(canvas, connector) {
   const numericPins = connector.measurement.pins.filter(p => p.parsed.kind === 'numeric');
-  const defaultRef = numericPins.find(p => p.signalClass === 'tmds-data-pos') ?? numericPins[0] ?? null;
+  const kind = kindOf(connector);
+  const defaultRef = numericPins.find(p => p.signalClass === kind.defaultRefClass) ?? numericPins[0] ?? null;
 
   const note = el('div', { class: 'meter-note', role: 'note' });
   note.appendChild(el('p', { class: 'mn-text' }, [
     el('b', {}, '⚠ Readings vary by meter — compare patterns, not digits. '),
     'Different multimeters read roughly 5–10 % apart, so expect every value here to be offset on yours. ',
-    'Measure one known-good pin on your board, enter it below, and we rescale the rest. ',
-    'What matters: pins of the same signal read alike, and nothing is OL or 0 where it shouldn\u2019t be.',
+    `Measure one known-good ${kind.pinWord.toLowerCase()} on your board, enter it below, and we rescale the rest. `,
+    `What matters: ${kind.pinWord.toLowerCase()}s of the same signal read alike, and nothing is OL or 0 where it shouldn\u2019t be.`,
   ]));
 
   if (!defaultRef) return canvas.appendChild(note);
 
   const refSel = el('select', { id: 'cal-ref', 'aria-label': 'Reference pin' });
   for (const p of numericPins) {
-    const info = pinInfo(p.num, p.signalClass);
-    refSel.appendChild(el('option', { value: String(p.num) }, `pin ${p.num} ${info.short}`));
+    const info = kind.pinInfo(p.num, p.signalClass);
+    refSel.appendChild(el('option', { value: String(p.num) }, `${kind.pinWord.toLowerCase()} ${p.num} ${info.short}`));
   }
   refSel.value = String(calibration?.refPin ?? defaultRef.num);
 
   const ours = el('span', { class: 'mn-ours' });
   const input = el('input', {
     id: 'cal-yours', type: 'text', inputmode: 'decimal', placeholder: '0.00',
-    'aria-label': 'Your reading for the reference pin, volts',
+    'aria-label': `Your reading for the reference ${kind.pinWord.toLowerCase()}, volts`,
     autocomplete: 'off',
   });
   if (calibration) input.value = calibration.yours;
   const result = el('span', { class: 'mn-result off' }, 'offset —');
   const clearBtn = el('button', { class: 'mn-clear', type: 'button' }, 'clear');
 
-  const refPinOf = () => connector.measurement.pins.find(p => p.num === Number(refSel.value));
+  const refPinOf = () => connector.measurement.pins.find(p => String(p.num) === refSel.value);
   const syncOurs = () => { ours.textContent = `ours ${formatValue(refPinOf().parsed)} → yours`; };
 
   function apply() {
@@ -245,13 +265,13 @@ function renderMeterNote(canvas, connector) {
     if (raw === '') { setCalibration(null); result.textContent = 'offset —'; result.className = 'mn-result off'; return; }
     try {
       const factor = calibrationFactor(refPinOf().parsed, raw);
-      setCalibration({ factor, refPin: Number(refSel.value), yours: raw });
+      setCalibration({ factor, refPin: refPinOf().num, yours: raw });
       result.textContent = `offset ${formatOffset(factor)}`;
       result.className = 'mn-result';
     } catch (_) {
       input.classList.add('bad');
       setCalibration(null);
-      result.textContent = 'enter a number like 0.83';
+      result.textContent = `enter a number like ${defaultRef.parsed.raw}`;
       result.className = 'mn-result off';
     }
   }
@@ -286,33 +306,34 @@ function renderPinDetail(pin) {
     const cls = currentPinmap?.filter ?? 'all';
     if (cls !== 'all') { renderSignalDetail(host, cls); return; }
     host.className = 'pin-detail empty';
-    host.appendChild(el('div', {}, 'Click or tap a pad to see that pin\u2019s reading and notes. In the Signals list below, hover a row to light up its pins, click to pin it.'));
+    const word = currentKind.pinWord.toLowerCase();
+    host.appendChild(el('div', {}, `Click or tap a pad to see that ${word}\u2019s reading and notes. In the Signals list below, hover a row to light up its ${word}s, click to pin it.`));
     return;
   }
 
   const ep = currentConnector.measurement.pins.find(p => p.num === pin);
-  const info = pinInfo(pin, ep?.signalClass);
+  const info = currentKind.pinInfo(pin, ep?.signalClass);
   const marked = currentPinmap?.isMarked(pin) ?? false;
   host.className = 'pin-detail';
 
   const sw = el('span', { class: 'swatch' });
-  sw.style.background = `var(${SIGNAL_CLASSES[info.className].cssVar})`;
+  sw.style.background = `var(${currentKind.signalClasses[info.className].cssVar})`;
 
   // Class chip behaves like its legend twin: hover lights up every pin of
   // that signal, click pins the signal.
   const classChip = el('button', {
     class: 'pd-class pd-class-btn',
     type: 'button',
-    title: `Highlight all ${info.classDisplayName} pins`,
+    title: `Highlight all ${info.classDisplayName} ${currentKind.pinWord.toLowerCase()}s`,
     onmouseenter: () => setLegendHover(info.className),
     onmouseleave: () => setLegendHover(null),
     onfocus: () => setLegendHover(info.className),
     onblur: () => setLegendHover(null),
     onclick: () => toggleSignalFilter(info.className),
-  }, [sw, info.classDisplayName, el('span', { class: 'chip-pins' }, pinsForClass(info.className).join(','))]);
+  }, [sw, info.classDisplayName, el('span', { class: 'chip-pins' }, classPinsLabel(currentKind.pinsForClass(info.className)))]);
 
   host.appendChild(el('div', { class: 'pd-head' }, [
-    el('span', { class: 'pd-pin' }, `Pin ${pin}`),
+    el('span', { class: 'pd-pin' }, `${currentKind.pinWord} ${pin}`),
     el('span', { class: 'pd-name pd-short' }, info.short),
     // long name only when it adds to the short one
     info.name !== info.short ? el('span', { class: 'pd-class' }, info.name) : null,
@@ -324,14 +345,14 @@ function renderPinDetail(pin) {
   else if (ep?.parsed.kind === 'zero') valueBox.appendChild(el('small', {}, 'connected to ground'));
   else {
     valueBox.appendChild(el('small', {}, currentConnector.measurement.unit || 'V (drop)'));
-    const scaled = calibration && ep ? scaleReading(ep.parsed, calibration.factor) : null;
+    const scaled = calibration && ep ? scaleReading(ep.parsed, calibration.factor, currentKind.calDecimals(ep.parsed)) : null;
     if (scaled) valueBox.appendChild(el('span', { class: 'pd-adj' }, `≈ ${formatValue(scaled)} on your meter`));
   }
   host.appendChild(valueBox);
 
   host.appendChild(el('p', { class: 'pd-desc' }, info.description));
   if (ep?.parsed.kind === 'numeric') {
-    host.appendChild(el('p', { class: 'pd-tol' }, 'Expect ±5–10 % between multimeters; compare against the other pins of the same signal on your board.'));
+    host.appendChild(el('p', { class: 'pd-tol' }, `Expect ±5–10 % between multimeters; compare against the other ${currentKind.pinWord.toLowerCase()}s of the same signal on your board.`));
   }
   if (ep?.note) host.appendChild(el('p', { class: 'pd-note' }, `Note: ${ep.note}`));
 
@@ -352,18 +373,18 @@ function renderPinDetail(pin) {
 // The description is already visible in the legend list, so this only
 // lists the signal's pins with their readings.
 function renderSignalDetail(host, cls) {
-  const meta = SIGNAL_CLASSES[cls];
+  const meta = currentKind.signalClasses[cls];
   host.className = 'pin-detail signal';
   const sw = el('span', { class: 'swatch' });
   sw.style.background = `var(${meta.cssVar})`;
   host.appendChild(el('div', { class: 'pd-head' }, [
     el('span', { class: 'pd-pin' }, [sw, ` ${meta.displayName}`]),
-    el('span', { class: 'pd-class' }, 'pins on this board'),
+    el('span', { class: 'pd-class' }, `${currentKind.pinWord.toLowerCase()}s on this board`),
   ]));
 
   const list = el('div', { class: 'pd-pinlist' });
   for (const p of currentConnector.measurement.pins.filter(p => p.signalClass === cls)) {
-    const info = pinInfo(p.num, p.signalClass);
+    const info = currentKind.pinInfo(p.num, p.signalClass);
     list.appendChild(el('button', {
       type: 'button',
       onclick: () => currentPinmap?.select(p.num),
@@ -372,7 +393,7 @@ function renderSignalDetail(host, cls) {
   host.appendChild(list);
 
   host.appendChild(el('div', { class: 'pd-actions' }, [
-    el('button', { class: 'btn', onclick: () => toggleSignalFilter(cls) }, 'Show all pins'),
+    el('button', { class: 'btn', onclick: () => toggleSignalFilter(cls) }, `Show all ${currentKind.pinWord.toLowerCase()}s`),
   ]));
 }
 
@@ -426,13 +447,42 @@ async function selectBoard(cons, entry, btn) {
     return;
   }
   currentBoard = board;
-  currentConnector = board.connectors[0]; // HDMI is the first/only connector today
-  calibration = null; // a calibration belongs to one board's readings
+  if (!board.connectors.length) {
+    renderWarnings(canvas, board);
+    canvas.appendChild(el('div', { class: 'warning-banner' }, `No readings yet for ${cons.name} — ${board.revision}.`));
+    return;
+  }
+  await showConnector(cons, board, 0);
+}
+
+// One connector of the loaded board: an HDMI port or a memory chip. Boards with
+// more than one get a tab row above the title; switching tabs re-renders the
+// canvas from the already loaded board.
+async function showConnector(cons, board, index) {
+  const canvas = document.getElementById('canvas');
+  clear(canvas);
+  currentPinmap?.destroy();
+  currentPinmap = null;
+  currentConnector = board.connectors[index];
+  currentKind = kindOf(currentConnector);
+  calibration = null; // a calibration belongs to one connector's readings
+
+  if (board.connectors.length > 1) {
+    canvas.appendChild(el('div', { class: 'conn-tabs', role: 'tablist', 'aria-label': 'Measured parts' },
+      board.connectors.map((c, i) => el('button', {
+        type: 'button',
+        role: 'tab',
+        class: 'conn-tab',
+        'aria-selected': String(i === index),
+        onclick: () => { if (i !== index) showConnector(cons, board, i); },
+      }, c.label || c.type || c.id))));
+  }
 
   // Title + meta
+  const pkgName = currentKind.isBga ? currentKind.package.name : currentConnector.type;
   canvas.appendChild(el('h2', { class: 'connector-title' }, `${cons.name} — ${currentConnector.label}`));
   canvas.appendChild(el('div', { class: 'connector-meta' },
-    `${currentConnector.type} · ${board.revision} · diode mode (red probe on GND)`));
+    `${pkgName} · ${board.revision} · diode mode (red probe on GND)${currentKind.isBga ? ' · top view' : ''}`));
   renderMeterNote(canvas, currentConnector);
 
   // Connector SVG mount + legend
@@ -440,7 +490,7 @@ async function selectBoard(cons, entry, btn) {
   canvas.appendChild(photoBar);
   const svgWrap = el('div', { class: 'svg-wrap' }, el('div', { id: 'pinmap-mount' }));
   canvas.appendChild(svgWrap);
-  const svgHint = el('p', { class: 'svg-hint' }, '← scroll the connector sideways →');
+  const svgHint = el('p', { class: 'svg-hint' }, currentKind.isBga ? '← scroll the ball map sideways →' : '← scroll the connector sideways →');
   canvas.appendChild(svgHint);
   const detailHost = el('div', { id: 'pin-detail', class: 'pin-detail empty' });
   canvas.appendChild(detailHost);
@@ -479,7 +529,8 @@ async function selectBoard(cons, entry, btn) {
     currentPinmap?.destroy();
     currentPinmap = null;
 
-    const live = mode === 'board' ? (board.photos.find(p => p.anchors) ?? null) : null;
+    // pin anchors on a photo place HDMI pads; a chip has no live photo yet
+    const live = mode === 'board' && !currentKind.isBga ? (board.photos.find(p => p.anchors) ?? null) : null;
     const galleryOnly = mode === 'board' && !live;
     for (const n of [svgWrap, svgHint, legendHost, detailHost]) n.hidden = galleryOnly;
     renderPhotoBar(live);
@@ -518,7 +569,7 @@ async function bootPinmap(board, connector, photo = null) {
     photo,
     onChange: (_scope, count) => {
       const span = document.getElementById('mark-counter');
-      if (span) span.textContent = count === 0 ? 'No pins marked' : `${count} pin${count === 1 ? '' : 's'} marked`;
+      if (span) span.textContent = markCountText(count);
     },
     onSelect: (pin) => renderPinDetail(pin),
     onHover: (pin) => {
