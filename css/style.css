@@ -26,6 +26,19 @@
   --sig-utility: #92400e;
   --sig-hpd: #eab308;
 
+  /* Memory-chip palette (keys mirror js/bga.mjs MEM_SIGNAL_CLASSES); --ink-* is the ball-name colour on it */
+  --sig-mem-vss: #9dc3e6;   --ink-mem-vss: #1c2024;
+  --sig-mem-vdd: #bfbfbf;   --ink-mem-vdd: #1c2024;
+  --sig-mem-vddq: #d6eef3;  --ink-mem-vddq: #1c2024;
+  --sig-mem-vpp: #f4c7d3;   --ink-mem-vpp: #1c2024;
+  --sig-mem-dq: #1f7a46;    --ink-mem-dq: #ffffff;
+  --sig-mem-dbi: #3f9d68;   --ink-mem-dbi: #ffffff;
+  --sig-mem-wck: #e11d24;   --ink-mem-wck: #ffffff;
+  --sig-mem-ck: #1d3fd8;    --ink-mem-ck: #ffffff;
+  --sig-mem-ca: #fde9a0;    --ink-mem-ca: #1c2024;
+  --sig-mem-misc: #22c55e;  --ink-mem-misc: #0b2e17;
+  --sig-mem-jtag: #b9e88a;  --ink-mem-jtag: #1c2024;
+
   --pad-stroke: #475569;
   --radius: 8px;
   --gutter: 16px;
@@ -55,6 +68,18 @@
     --sig-utility: #b45309;
     --sig-hpd: #facc15;
 
+    --sig-mem-vss: #3b6489;   --ink-mem-vss: #e6e8ec;
+    --sig-mem-vdd: #5b616b;   --ink-mem-vdd: #e6e8ec;
+    --sig-mem-vddq: #2f5961;  --ink-mem-vddq: #e6e8ec;
+    --sig-mem-vpp: #8a4a5c;   --ink-mem-vpp: #f5e6ea;
+    --sig-mem-dq: #2f9a5c;    --ink-mem-dq: #ffffff;
+    --sig-mem-dbi: #4fb37b;   --ink-mem-dbi: #0b2016;
+    --sig-mem-wck: #ef4444;   --ink-mem-wck: #ffffff;
+    --sig-mem-ck: #4f6ef0;    --ink-mem-ck: #ffffff;
+    --sig-mem-ca: #a8892c;    --ink-mem-ca: #fff8e0;
+    --sig-mem-misc: #22c55e;  --ink-mem-misc: #0b2e17;
+    --sig-mem-jtag: #6d9a3c;  --ink-mem-jtag: #f3fbe9;
+
     --pad-stroke: #94a3b8;
     color-scheme: dark;
   }
@@ -80,6 +105,18 @@
   --sig-cec: #2dd4bf;
   --sig-utility: #b45309;
   --sig-hpd: #facc15;
+
+  --sig-mem-vss: #3b6489;   --ink-mem-vss: #e6e8ec;
+  --sig-mem-vdd: #5b616b;   --ink-mem-vdd: #e6e8ec;
+  --sig-mem-vddq: #2f5961;  --ink-mem-vddq: #e6e8ec;
+  --sig-mem-vpp: #8a4a5c;   --ink-mem-vpp: #f5e6ea;
+  --sig-mem-dq: #2f9a5c;    --ink-mem-dq: #ffffff;
+  --sig-mem-dbi: #4fb37b;   --ink-mem-dbi: #0b2016;
+  --sig-mem-wck: #ef4444;   --ink-mem-wck: #ffffff;
+  --sig-mem-ck: #4f6ef0;    --ink-mem-ck: #ffffff;
+  --sig-mem-ca: #a8892c;    --ink-mem-ca: #fff8e0;
+  --sig-mem-misc: #22c55e;  --ink-mem-misc: #0b2e17;
+  --sig-mem-jtag: #6d9a3c;  --ink-mem-jtag: #f3fbe9;
   --pad-stroke: #94a3b8;
   color-scheme: dark;
 }
@@ -314,6 +351,52 @@ button.btn:hover { border-color: var(--accent); }
 .pad-group.selected .pad-label, .pad-group.selected .pad-value { fill: var(--accent); }
 /* marked + selected: keep the damage colour on the outline, accent on text */
 .pad-group.marked.selected .pad { stroke: var(--accent-mark); }
+
+/* ---- Memory-chip ball map --------------------------------------------------- */
+/* A BGA chip (js/bga.mjs) uses the same .pad-group contract: the ball name sits
+   on a cell in its class colour, the reading under it, like a technician's sheet. */
+.pad-group[data-class="mem-vss"]  { --pad-sig: var(--sig-mem-vss);  --pad-ink: var(--ink-mem-vss); }
+.pad-group[data-class="mem-vdd"]  { --pad-sig: var(--sig-mem-vdd);  --pad-ink: var(--ink-mem-vdd); }
+.pad-group[data-class="mem-vddq"] { --pad-sig: var(--sig-mem-vddq); --pad-ink: var(--ink-mem-vddq); }
+.pad-group[data-class="mem-vpp"]  { --pad-sig: var(--sig-mem-vpp);  --pad-ink: var(--ink-mem-vpp); }
+.pad-group[data-class="mem-dq"]   { --pad-sig: var(--sig-mem-dq);   --pad-ink: var(--ink-mem-dq); }
+.pad-group[data-class="mem-dbi"]  { --pad-sig: var(--sig-mem-dbi);  --pad-ink: var(--ink-mem-dbi); }
+.pad-group[data-class="mem-wck"]  { --pad-sig: var(--sig-mem-wck);  --pad-ink: var(--ink-mem-wck); }
+.pad-group[data-class="mem-ck"]   { --pad-sig: var(--sig-mem-ck);   --pad-ink: var(--ink-mem-ck); }
+.pad-group[data-class="mem-ca"]   { --pad-sig: var(--sig-mem-ca);   --pad-ink: var(--ink-mem-ca); }
+.pad-group[data-class="mem-misc"] { --pad-sig: var(--sig-mem-misc); --pad-ink: var(--ink-mem-misc); }
+.pad-group[data-class="mem-jtag"] { --pad-sig: var(--sig-mem-jtag); --pad-ink: var(--ink-mem-jtag); }
+.pad-group[data-class^="mem-"] .pad { fill: var(--pad-sig); }
+
+.svg-wrap .bga { min-width: 760px; max-width: 980px; }
+.pad-hit { fill: transparent; stroke: none; cursor: pointer; }
+.grid-label { font-size: 13px; font-weight: 700; fill: var(--text-muted); text-anchor: middle; pointer-events: none; }
+.bga .ball-name { font-size: 10.5px; fill: var(--pad-ink, var(--text)); letter-spacing: -0.01em; }
+.bga .pad-value { font-size: 11.5px; }
+.bga .pad-value-adj { font-size: 10px; }
+/* power and ground balls read ~0 by design: keep their colour, only the value is muted */
+.bga .pad-group.low .pad { fill-opacity: 1; }
+.bga .pad-group.ol .pad { fill: var(--pad-sig); fill-opacity: 0.35; }
+.bga .pad-group.highlight .pad-label { font-size: 10.5px; fill: var(--pad-ink, var(--text)); }
+.bga .pad-group.selected .pad-label { fill: var(--pad-ink, var(--text)); }
+/* "Labels" hides the row/column frame on a chip; ball names stay, they are the map */
+.hide-labels .grid-label { display: none; }
+.hide-labels .bga .ball-name { display: inline; }
+.bga-surface .pad-caret { stroke: var(--surface); stroke-width: 1; }
+
+/* parts of one board (HDMI port, memory chip): tabs above the title */
+.conn-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.conn-tab {
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.conn-tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 /* ---- Photo surface ------------------------------------------------------- */
 /* Pads drawn over a board photo (js/photo.mjs): same classes as the schematic,
@@ -608,7 +691,7 @@ button.btn.danger:hover { background: var(--accent-mark); color: #fff; }
   .canvas { position: static; padding: 0; }
   .svg-wrap { border: none; }
   .pad-group.marked .pad { stroke-width: 4; }
-  .svg-wrap svg { min-width: 0; max-width: 100%; }
-  .svg-hint, .pin-detail .pd-actions, .meter-note .mn-calc, .photo-bar .pb-frame { display: none; }
+  .svg-wrap svg, .svg-wrap .bga { min-width: 0; max-width: 100%; }
+  .conn-tabs, .svg-hint, .pin-detail .pd-actions, .meter-note .mn-calc, .photo-bar .pb-frame { display: none; }
   .legend-chip { border-color: var(--border); break-inside: avoid; }
 }

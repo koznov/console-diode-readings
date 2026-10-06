@@ -4,6 +4,7 @@
 import { parseValue } from '../../js/values.mjs';
 import { padPositions } from '../../js/photo.mjs';
 import { HDMI_PIN_COUNT } from '../../js/signals.mjs';
+import { kindOf, rawPinKey } from '../../js/kinds.mjs';
 
 // Validate one pin reading string. A blank value is allowed (a pin may be left
 // unmeasured); a non-blank value must parse. Returns null if OK, else a message.
@@ -25,21 +26,32 @@ export function validateConnector(conn, index = 0) {
   const errors = [];
   if (typeof conn.id !== 'string' || !conn.id) errors.push(`${label}: id is required`);
 
-  const pinCount = Number(conn.pinCount) || HDMI_PIN_COUNT;
+  let kind;
+  try {
+    kind = kindOf(conn);
+  } catch (e) {
+    return [...errors, `${label}: ${e.message}`];
+  }
+  const word = kind.pinWord.toLowerCase();
   const pins = Array.isArray(conn.measurement?.pins) ? conn.measurement.pins : [];
+  // an HDMI connector may declare fewer pins; a chip's balls come from its package
+  const pinCount = Number(conn.pinCount) || HDMI_PIN_COUNT;
+  const exists = (key) => kind.isBga ? kind.hasKey(key) : Number.isInteger(key) && key >= 1 && key <= pinCount;
 
   const seen = new Set();
   for (const pin of pins) {
-    const num = Number(pin?.num);
-    if (!Number.isInteger(num) || num < 1 || num > pinCount) {
-      errors.push(`${label}: pin number ${pin?.num} is out of range 1..${pinCount}`);
+    const key = rawPinKey(kind, pin);
+    if (key == null || !exists(key)) {
+      errors.push(kind.isBga
+        ? `${label}: ball ${pin?.ball} does not exist on ${kind.package.name}`
+        : `${label}: pin number ${pin?.num} is out of range 1..${pinCount}`);
       continue;
     }
-    if (seen.has(num)) errors.push(`${label}: duplicate pin ${num}`);
-    seen.add(num);
+    if (seen.has(key)) errors.push(`${label}: duplicate ${word} ${key}`);
+    seen.add(key);
 
     const v = validatePinValue(pin.value);
-    if (v) errors.push(`${label} pin ${num}: ${v}`);
+    if (v) errors.push(`${label} ${word} ${key}: ${v}`);
   }
   return errors;
 }

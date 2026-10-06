@@ -1,11 +1,12 @@
-// Connector + pin editor for a board. Renders one card per connector with a
-// table of value inputs (one row per pin). Edits mutate `board.connectors` in
+// Connector + pin editor for a board. Renders one card per connector (HDMI
+// port or memory chip) with a table of value inputs (one row per pin / ball). Edits mutate `board.connectors` in
 // place as the user types, so the single "Save board" button always sees the
 // latest state. Unmeasured pins are omitted on save (the site treats a missing
 // pin as non-fatal), never stored as an empty string.
 
 import { el, clear } from '../../../js/ui.mjs';
-import { HDMI_PIN_COUNT, pinInfo } from '../../../js/signals.mjs';
+import { HDMI_PIN_COUNT } from '../../../js/signals.mjs';
+import { kindOf, rawPinKey } from '../../../js/kinds.mjs';
 import { validatePinValue } from '../validate.mjs';
 
 // "ol" (any case) → canonical "OL"; null/undefined → '' ; else verbatim.
@@ -15,17 +16,21 @@ function normalizeValue(raw) {
   return /^ol$/i.test(s) ? 'OL' : s;
 }
 
-// Drop unmeasured pins and sort the rest by number, reusing existing pin objects
-// so any extra fields (note, signalClass) survive. Mutates `board` in place.
+// Drop unmeasured pins and sort the rest in the connector's own order (pin
+// number, or ball map order on a chip), reusing existing pin objects so any
+// extra fields (note, signalClass) survive. Mutates `board` in place.
 export function finalizeConnectors(board) {
   for (const conn of board.connectors || []) {
     const m = conn.measurement || (conn.measurement = {});
-    const pinCount = Number(conn.pinCount) || HDMI_PIN_COUNT;
-    const byNum = new Map();
-    for (const p of Array.isArray(m.pins) ? m.pins : []) byNum.set(Number(p.num), p);
+    const kind = kindOf(conn);
+    const byKey = new Map();
+    for (const p of Array.isArray(m.pins) ? m.pins : []) {
+      const key = rawPinKey(kind, p);
+      if (key != null && !byKey.has(key)) byKey.set(key, p);
+    }
     const next = [];
-    for (let num = 1; num <= pinCount; num++) {
-      const p = byNum.get(num);
+    for (const key of kind.keys()) {
+      const p = byKey.get(key);
       if (!p) continue;
       const v = normalizeValue(p.value);
       if (v === '') continue; // omit unmeasured pins
@@ -40,8 +45,9 @@ export function renderConnectors(hostEl, ctx, board) {
   if (!Array.isArray(board.connectors)) board.connectors = [];
 
   const listHost = el('div');
-  const addBtn = el('button', { class: 'btn small' }, '+ Add connector');
-  hostEl.append(listHost, el('div', { class: 'action-bar' }, [addBtn]));
+  const addBtn = el('button', { class: 'btn small' }, '+ Add HDMI port');
+  const addChipBtn = el('button', { class: 'btn small' }, '+ Add GDDR6 chip');
+  hostEl.append(listHost, el('div', { class: 'action-bar' }, [addBtn, addChipBtn]));
 
   function draw() {
     clear(listHost);
@@ -55,26 +61,26 @@ export function renderConnectors(hostEl, ctx, board) {
   function connCard(conn, index) {
     const m = conn.measurement || (conn.measurement = {});
     if (!Array.isArray(m.pins)) m.pins = [];
-    const pinCount = Number(conn.pinCount) || HDMI_PIN_COUNT;
+    const kind = kindOf(conn);
+    const keys = kind.keys();
 
     // Header: editable id + type/pin count + remove.
     const idInput = el('input', { type: 'text', class: 'conn-id', value: conn.id });
     idInput.addEventListener('input', () => { conn.id = idInput.value.trim(); });
     const head = el('div', { class: 'conn-head' }, [
       idInput,
-      el('span', { class: 'conn-meta' }, `${conn.type || ''} · ${pinCount} pins`),
+      el('span', { class: 'conn-meta' }, `${kind.isBga ? kind.package.name : conn.type || ''} · ${keys.length} ${kind.pinWord.toLowerCase()}s`),
       el('button', { class: 'btn small danger', onclick: () => removeConnector(index) }, 'Remove'),
     ]);
 
     // Pin table.
     const tbody = el('tbody');
-    for (let num = 1; num <= pinCount; num++) {
-      const p = pinFor(conn, num);
-      let sig = '';
-      try { sig = pinInfo(num).short; } catch (e) { /* non-HDMI pin count */ }
+    for (const key of keys) {
+      const p = pinFor(conn, kind, key);
+      const sig = kind.pinInfo(key).short;
       const input = el('input', { type: 'text', class: 'val-input', value: p.value ?? '', placeholder: '—' });
       const tr = el('tr', {}, [
-        el('td', { class: 'num' }, String(num)),
+        el('td', { class: 'num' }, String(key)),
         el('td', { class: 'sig' }, sig),
         el('td', {}, input),
       ]);
@@ -91,7 +97,7 @@ export function renderConnectors(hostEl, ctx, board) {
       head,
       el('table', { class: 'pin-table' }, [
         el('thead', {}, [el('tr', {}, [
-          el('th', { class: 'num' }, 'Pin'),
+          el('th', { class: 'num' }, kind.pinWord),
           el('th', {}, 'Signal'),
           el('th', {}, 'Value (V drop / OL)'),
         ])]),
@@ -100,19 +106,23 @@ export function renderConnectors(hostEl, ctx, board) {
     ]);
   }
 
-  // Find the pin object for a number, creating it if absent.
-  function pinFor(conn, num) {
+  // Find the pin object for a key (pin number or ball id), creating it if absent.
+  function pinFor(conn, kind, key) {
     const m = conn.measurement || (conn.measurement = {});
     if (!Array.isArray(m.pins)) m.pins = [];
-    let p = m.pins.find(x => Number(x.num) === num);
-    if (!p) { p = { num }; m.pins.push(p); }
+    let p = m.pins.find(x => rawPinKey(kind, x) === key);
+    if (!p) { p = { [kind.keyField]: key }; m.pins.push(p); }
     return p;
   }
 
-  function addConnector() {
-    const n = board.connectors.length + 1;
+  function freeId(base) {
     let id, k = 1;
-    do { id = k === 1 ? 'hdmi' : `hdmi-${k}`; k++; } while (board.connectors.some(c => c.id === id));
+    do { id = k === 1 ? base : `${base}-${k}`; k++; } while (board.connectors.some(c => c.id === id));
+    return id;
+  }
+
+  function addConnector() {
+    const id = freeId('hdmi');
     board.connectors.push({
       id,
       type: 'HDMI',
@@ -130,6 +140,18 @@ export function renderConnectors(hostEl, ctx, board) {
     draw();
   }
 
+  function addChip() {
+    board.connectors.push({
+      id: freeId('gddr6'),
+      type: 'GDDR6',
+      package: 'gddr6',
+      label: 'GDDR6 RAM',
+      measurement: { mode: 'diode', probes: { red: 'GND', black: 'ball' }, unit: 'V (drop)', pins: [] },
+    });
+    draw();
+  }
+
   addBtn.addEventListener('click', addConnector);
+  addChipBtn.addEventListener('click', addChip);
   draw();
 }
