@@ -1,14 +1,15 @@
 # 🎮 Console Diode Readings
 
 An interactive reference of **diode-mode multimeter readings** for HDMI ports
-across PlayStation, Xbox, and Nintendo consoles — so repair technicians can
+across PlayStation, Xbox, and Nintendo consoles, and for the pads of the
+**GDDR6 memory chips** (PS5 CFI-1216A so far), so repair technicians can
 verify and cross-check measurements against known-good boards.
 
 🌐 **Live site:** https://koznov.github.io/console-diode-readings/
 
 Inspired by the interactive BGA pinout viewer at
-[forterfix.com/bga_pinouts](https://forterfix.com/bga_pinouts), but for
-console HDMI ports.
+[forterfix.com/bga_pinouts](https://forterfix.com/bga_pinouts), whose GDDR6
+pinout we cross-checked our own ball map (`js/bga.mjs`, after JEDEC) against.
 
 ## How readings are taken
 
@@ -47,7 +48,13 @@ forward voltage drop in volts (or `OL` = open line).
    (e.g. EDM-010) that view shows the real connector with the same live pins:
    hover, select, mark damaged and calibrate work exactly as on the schematic.
    *Pads* zooms to the contact strip, *Whole photo* shows the full picture.
-8. **Print** or **Export CSV** for an offline reference of the current board
+8. A board with more than one measured part (e.g. CFI-1216A: *HDMI port* and
+   *GDDR6 RAM*) shows tabs above the title. The GDDR6 tab draws the chip's
+   180-ball map (top view, channel A on top, B below) with each ball's name
+   and reading, like a technician's sheet. Hover, select, mark damaged, the
+   Signals list and calibration work the same as on HDMI; calibration keeps
+   the chip's four decimals.
+9. **Print** or **Export CSV** for an offline reference of the current board
    (exports include pin names and your marked pins).
 
 ## Contributing
