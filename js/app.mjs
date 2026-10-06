@@ -6,6 +6,7 @@ import { loadCatalog, loadBoard } from './loader.mjs';
 import { Store } from './store.mjs';
 import { createPinmap } from './pinmap.mjs';
 import { kindOf } from './kinds.mjs';
+import { assessDamage, ballRoleText } from './damage.mjs';
 import { formatValue, calibrationFactor, scaleReading, formatOffset } from './values.mjs';
 import { el, clear } from './ui.mjs';
 
@@ -215,10 +216,56 @@ function markCountText(n) {
   return n === 0 ? `No ${word}s marked` : `${n} ${word}${n === 1 ? '' : 's'} marked`;
 }
 
+// "Will it still work?" panel for a memory chip: re-judged from the marked
+// (damaged) balls every time a mark changes. HDMI has no such panel.
+const VERDICT_TEXT = {
+  none: ['Mark damaged balls to check whether the chip will still work.', ''],
+  ok: ['✓ Will work', 'Only redundant power/ground or unused balls are damaged.'],
+  warn: ['⚠ Should work, with caveats', ''],
+  fail: ['✕ Will NOT work', ''],
+};
+
+function renderDamage(board, connector) {
+  const host = document.getElementById('damage-check');
+  if (!host) return;
+  clear(host);
+  const kind = kindOf(connector);
+  if (!kind.isBga) { host.hidden = true; return; }
+  const marked = store.markedPins(`${board.id}:${connector.id}`);
+  const r = assessDamage(kind.package, marked);
+  host.hidden = false;
+  host.className = `damage-check v-${r.verdict}`;
+
+  const [head, sub] = VERDICT_TEXT[r.verdict];
+  host.appendChild(el('div', { class: 'dc-head' }, [
+    el('span', { class: 'dc-title' }, 'Will it work?'),
+    el('span', { class: 'dc-verdict' }, head),
+  ]));
+  if (sub) host.appendChild(el('p', { class: 'dc-sub' }, sub));
+
+  const ballList = (label, balls, cls) => {
+    if (!balls.length) return;
+    host.appendChild(el('div', { class: `dc-row ${cls}` }, [
+      el('span', { class: 'dc-label' }, label),
+      ...balls.map(b => el('button', {
+        type: 'button', class: 'dc-ball',
+        onclick: () => { if (currentPinmap?.selectedPin !== b) currentPinmap?.select(b); currentPinmap?.focusPin(b); },
+      }, `${b} ${kind.pinInfo(b).short}`)),
+    ]));
+  };
+  ballList('Critical, damaged:', r.critical, 'dc-critical');
+  if (r.lostRails.length) {
+    host.appendChild(el('p', { class: 'dc-line' }, `Every ${r.lostRails.join(' and every ')} ball is damaged: the rail is cut off.`));
+  }
+  for (const w of r.warnings) host.appendChild(el('p', { class: 'dc-line' }, w));
+  ballList('Not needed, damaged:', r.optional, 'dc-optional');
+}
+
 function updateMarkerCounter(board, connector) {
   const span = document.getElementById('mark-counter');
   if (!span) return;
   span.textContent = markCountText(store.markedPins(`${board.id}:${connector.id}`).length);
+  renderDamage(board, connector);
 }
 
 // Meter-variance banner with the calibration calculator. The user types
@@ -351,6 +398,7 @@ function renderPinDetail(pin) {
   host.appendChild(valueBox);
 
   host.appendChild(el('p', { class: 'pd-desc' }, info.description));
+  if (currentKind.isBga) host.appendChild(el('p', { class: 'pd-role' }, ballRoleText(currentKind.package, pin)));
   if (ep?.parsed.kind === 'numeric') {
     host.appendChild(el('p', { class: 'pd-tol' }, `Expect ±5–10 % between multimeters; compare against the other ${currentKind.pinWord.toLowerCase()}s of the same signal on your board.`));
   }
@@ -494,6 +542,8 @@ async function showConnector(cons, board, index) {
   canvas.appendChild(svgHint);
   const detailHost = el('div', { id: 'pin-detail', class: 'pin-detail empty' });
   canvas.appendChild(detailHost);
+  const damageHost = el('div', { id: 'damage-check', class: 'damage-check', hidden: '' });
+  canvas.appendChild(damageHost);
   const legendHost = el('div', {});
   renderLegend(legendHost);
   canvas.appendChild(legendHost);
@@ -533,6 +583,7 @@ async function showConnector(cons, board, index) {
     const live = mode === 'board' && !currentKind.isBga ? (board.photos.find(p => p.anchors) ?? null) : null;
     const galleryOnly = mode === 'board' && !live;
     for (const n of [svgWrap, svgHint, legendHost, detailHost]) n.hidden = galleryOnly;
+    damageHost.hidden = galleryOnly || !currentKind.isBga;
     renderPhotoBar(live);
 
     if (galleryOnly) { renderPhotos(canvas, board); return; }
@@ -567,10 +618,7 @@ async function bootPinmap(board, connector, photo = null) {
     board,
     store,
     photo,
-    onChange: (_scope, count) => {
-      const span = document.getElementById('mark-counter');
-      if (span) span.textContent = markCountText(count);
-    },
+    onChange: () => updateMarkerCounter(board, connector),
     onSelect: (pin) => renderPinDetail(pin),
     onHover: (pin) => {
       // mirror pad hover into the legend chip of that pin's class
