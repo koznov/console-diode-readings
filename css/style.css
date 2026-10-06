@@ -393,8 +393,11 @@ button.btn:hover { border-color: var(--accent); }
   position: sticky;
   top: 0;
   z-index: 2;
-  max-height: 40vh;
+  /* one fixed height for every verdict, so the map below never jumps while
+     marking; longer verdicts (several critical balls, warnings) scroll inside */
+  height: 6.5rem;
   overflow-y: auto;
+  overscroll-behavior: contain;
   box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
   margin: 0 0 12px;
   padding: 10px 14px;
@@ -739,7 +742,7 @@ button.btn.danger:hover { background: var(--accent-mark); color: #fff; }
   .svg-wrap { border: none; }
   .pad-group.marked .pad { stroke-width: 4; }
   .svg-wrap svg, .svg-wrap .bga { min-width: 0; max-width: 100%; }
-  .damage-check { position: static; max-height: none; box-shadow: none; }
+  .damage-check { position: static; height: auto; overflow: visible; box-shadow: none; }
   .conn-tabs, .svg-hint, .pin-detail .pd-actions, .meter-note .mn-calc, .photo-bar .pb-frame { display: none; }
   .legend-chip { border-color: var(--border); break-inside: avoid; }
 }
