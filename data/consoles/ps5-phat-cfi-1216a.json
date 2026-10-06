@@ -255,13 +255,11 @@
           },
           {
             "ball": "D10",
-            "value": "0.2574",
-            "note": "Marked NC on this board in the source sheet."
+            "value": "0.2574"
           },
           {
             "ball": "D11",
-            "value": "0.2592",
-            "note": "Marked NC on this board in the source sheet."
+            "value": "0.2592"
           },
           {
             "ball": "D12",
@@ -373,8 +371,7 @@
           },
           {
             "ball": "G5",
-            "value": "OL",
-            "note": "Marked NC on this board in the source sheet."
+            "value": "OL"
           },
           {
             "ball": "G10",
@@ -574,8 +571,7 @@
           },
           {
             "ball": "M5",
-            "value": "OL",
-            "note": "Marked NC on this board in the source sheet."
+            "value": "OL"
           },
           {
             "ball": "M10",
@@ -691,13 +687,11 @@
           },
           {
             "ball": "R4",
-            "value": "0.26",
-            "note": "Marked NC on this board in the source sheet."
+            "value": "0.26"
           },
           {
             "ball": "R5",
-            "value": "0.2577",
-            "note": "Marked NC on this board in the source sheet."
+            "value": "0.2577"
           },
           {
             "ball": "R10",
