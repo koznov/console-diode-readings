@@ -9,7 +9,9 @@ verify and cross-check measurements against known-good boards.
 
 Inspired by the interactive BGA pinout viewer at
 [forterfix.com/bga_pinouts](https://forterfix.com/bga_pinouts), whose GDDR6
-pinout we cross-checked our own ball map (`js/bga.mjs`, after JEDEC) against.
+pinout we cross-checked our own ball map against. The map itself
+(`js/bga.mjs`) follows JESD250 Figure 117, *GDDR6 SGRAM 180 ball BGA Ball-out*
+(see also [monitorinsider.com/GDDR6.html](http://monitorinsider.com/GDDR6.html)).
 
 ## How readings are taken
 

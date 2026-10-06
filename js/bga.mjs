@@ -9,7 +9,9 @@
 import { escapeHtml } from './ui.mjs';
 
 // ---- GDDR6, 180 balls (x16 two-channel, 0.75 mm pitch) -----------------------
-// Columns 1-5 and 10-14; 6-9 are the depopulated middle. Channel A sits in rows
+// As JESD250 Figure 117 "GDDR6 SGRAM 180 ball BGA Ball-out" draws it: top view,
+// as seen through the package, which is also how the pads lie on the board once
+// the chip is off. Columns 1-5 and 10-14; 6-9 are the depopulated middle. Channel A sits in rows
 // A-J, channel B mirrors it in rows K-V.
 const GDDR6_COLUMNS = [1, 2, 3, 4, 5, 10, 11, 12, 13, 14];
 const GDDR6_ROWS = {
@@ -32,6 +34,10 @@ const GDDR6_ROWS = {
   U: 'VSS      DQ3_B    DQ2_B    DQ0_B    VDDQ      VDDQ     DQ8_B    DQ10_B   DQ11_B   VSS',
   V: 'VDD      VSS      DQ1_B    VSS      VPP       VPP      VSS      DQ9_B    VSS      VDD',
 };
+
+// Balls the JEDEC figure itself annotates ", NC": the second WCK pair of each
+// channel (unused when a channel runs on one pair) and the RFU balls.
+const GDDR6_NC = ['D10', 'D11', 'G5', 'M5', 'R4', 'R5'];
 
 // Classes are shared by every memory package so the CSS (--sig-mem-*) and the
 // legend stay the same from one chip to the next.
@@ -105,7 +111,7 @@ function longName(name) {
   return bits.filter(Boolean).join(', ');
 }
 
-function buildPackage({ id, name, columns, rows, gapAfter }) {
+function buildPackage({ id, name, columns, rows, gapAfter, nc = [] }) {
   const balls = new Map(); // "A1" → name
   const rowLabels = Object.keys(rows);
   for (const r of rowLabels) {
@@ -116,11 +122,12 @@ function buildPackage({ id, name, columns, rows, gapAfter }) {
     names.forEach((n, i) => { if (n !== '.') balls.set(`${r}${columns[i]}`, n); });
   }
   for (const n of balls.values()) memClassForName(n); // every name must classify
-  return Object.freeze({ id, name, columns, rowLabels, gapAfter, balls });
+  for (const b of nc) if (!balls.has(b)) throw new Error(`${id}: NC ball ${b} is not on the map`);
+  return Object.freeze({ id, name, columns, rowLabels, gapAfter, balls, nc: new Set(nc) });
 }
 
 export const PACKAGES = {
-  gddr6: buildPackage({ id: 'gddr6', name: 'GDDR6 (180-ball)', columns: GDDR6_COLUMNS, rows: GDDR6_ROWS, gapAfter: 5 }),
+  gddr6: buildPackage({ id: 'gddr6', name: 'GDDR6 (180-ball)', columns: GDDR6_COLUMNS, rows: GDDR6_ROWS, gapAfter: 5, nc: GDDR6_NC }),
 };
 
 export function getPackage(id) {
@@ -143,7 +150,7 @@ export function memPinInfo(pkg, ball, override) {
   return {
     pin: ball,
     short: name,
-    name: longName(name),
+    name: pkg.nc.has(ball) ? `${longName(name)}; NC in some configurations` : longName(name),
     className,
     classDisplayName: meta.displayName,
     description: meta.description,

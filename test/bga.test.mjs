@@ -33,7 +33,7 @@ test('GDDR6 ball names sit where the datasheet puts them', () => {
   assert.equal(at('K10'), 'CK_c');
   assert.equal(at('K1'), 'VREFC');
   assert.equal(at('V3'), 'DQ1_B');
-  // measured as I/O supply on CFI-1216A (reads like every other VDDQ, not like VSS)
+  // JESD250 Fig. 117 (and CFI-1216A measures them like every other VDDQ, not like VSS)
   assert.equal(at('H14'), 'VDDQ');
   assert.equal(at('L14'), 'VDDQ');
 });
@@ -71,6 +71,9 @@ test('memPinInfo describes a ball the way the tooltip shows it', () => {
   assert.equal(memPinInfo(gddr6, 'D4').name, 'Write clock, true, channel A');
   assert.equal(memPinInfo(gddr6, 'G10').name, 'Clock enable, active low, channel A');
   assert.equal(memPinInfo(gddr6, 'A2').name, 'Ground');
+  assert.equal(memPinInfo(gddr6, 'D10').name, 'Write clock, complement, channel A; NC in some configurations');
+  assert.equal(memPinInfo(gddr6, 'G5').name, 'Reserved, channel A; NC in some configurations');
+  assert.deepEqual([...gddr6.nc].sort(), ['D10', 'D11', 'G5', 'M5', 'R4', 'R5']);
   assert.throws(() => memPinInfo(gddr6, 'A7'), RangeError);
   // a valid override wins, an unknown one falls back
   assert.equal(memPinInfo(gddr6, 'B3', 'mem-misc').className, 'mem-misc');
@@ -207,7 +210,6 @@ test('CFI-1216A GDDR6 readings: all 180 balls, and the patterns a good chip show
   assert.equal(at('J1').raw, '0.2568');   // RESET_n
   assert.equal(at('J14').raw, '0.0429');  // ZQ_A
   assert.equal(at('J12').raw, '0.2763');  // CA6_A, the highest reading on the sheet
-  assert.match(at('D10').note, /NC/);
 });
 
 // ---- calibration keeps a chip's precision ------------------------------------------------------
